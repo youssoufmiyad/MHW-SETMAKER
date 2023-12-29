@@ -1,0 +1,1 @@
+FIRST_MESSAGE="Bonjour , je suis un bot ayant pour but de t'aider à composer ton set dans le jeu MONSTER HUNTER WORLD.\nAs-tu des questions sur mes capacités/ mon fonctionement ?"

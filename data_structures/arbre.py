@@ -20,7 +20,12 @@ class Node:
 class Discusion_tree:
     def __init__(self):
         self.first_node = None
+        self.current_conversation_node = None
+
+    def add_first_message(self, message):
+        self.first_node = Node(message)
         self.current_conversation_node = self.first_node
+
 
     def add_message(self, new_message, yes_or_no, old_message):
         self.first_node.add_message(new_message, yes_or_no, old_message)
@@ -37,16 +42,16 @@ class Discusion_tree:
             elif yes_or_no == "non":
                 self.current_conversation_node = self.current_conversation_node.no_node
 
-    def get_answer(self):
-      if self.current_conversation_node == None:
-        return "FIN DE L'ARBRE"
-      return self.current_conversation_node.message
+    def show_message(self):
+        if self.current_conversation_node == None:
+            return "FIN DE L'ARBRE"
+        return self.current_conversation_node.message
 
 
-Discusion = Discusion_tree()
-Discusion.first_node = Node("Help?")
-Discusion.add_message("Python ?", "oui", "Help?")
-Discusion.add_message("tant pis", "non", "Help?")
-Discusion.next_message("oui")
-Discusion.next_message("non")
-print(Discusion.get_answer())
+# Discusion = Discusion_tree()
+# Discusion.first_node = Node("Help?")
+# Discusion.add_message("Python ?", "oui", "Help?")
+# Discusion.add_message("tant pis", "non", "Help?")
+# Discusion.next_message("oui")
+# Discusion.next_message("non")
+# print(Discusion.show_message())
