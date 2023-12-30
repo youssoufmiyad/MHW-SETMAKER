@@ -6,6 +6,7 @@ from discord.ext import tasks, commands
 # DATA STRUCTURES (arbre, hashMap, liste)
 from data_structures.liste import chained_list
 from data_structures.arbre import Discusion_tree
+from discussion import discussion
 from datetime import datetime
 from utils import *
 
@@ -27,8 +28,8 @@ historique = chained_list()
 path = ""
 
 # Variables de la discussion avec le bot
-discussion = Discusion_tree()
-discussion.add_first_message(FIRST_MESSAGE)
+discussion_on = False
+discussion = discussion
 
 ################################ HISTORIQUE ##################################
 
@@ -61,8 +62,21 @@ async def history(ctx):
 
 @bot.command(name="help")
 async def help(ctx):
-    print(discussion.show_message())
+    global discussion_on, discussion
+    historique.append("help")
+    answer = await ctx.message.channel.send(discussion.show_message())
+    await answer.add_reaction('✅')
+    await answer.add_reaction('❌')
+    
+    
+    discussion_on = True
 
+
+@bot.command(name="exit")
+async def exit(ctx):
+    historique.append("exit")
+    global discussion_on
+    discussion_on = False
 ##############################################################################
 
 
@@ -90,23 +104,29 @@ async def on_member_join(member):
 
 @bot.event
 async def on_message(message):
-    global path
-    global data
-    global historique
-    global discussion
+    global path, data, historique, discussion, discussion_on
+
+    discussion_on = discussion_on
     if message.author == bot.user:
         return
-    path = "historique/" + str(message.author.id) + ".json"
-    data = saveExist(path)
-    if (historique.lenght() < 1):
-        historique = saveImport(data)
+    else:
+        path = "historique/" + str(message.author.id) + ".json"
+        data = saveExist(path)
+        if (historique.lenght() < 1):
+            historique = saveImport(data)
 
-    await message.channel.send("resp")
+        message.content = message.content.lower()
 
-    message.content = message.content.lower()
-
-    if message.content.startswith("hello"):
-        await message.channel.send("Hello "+message.author.display_name)
+        print("discussion : ", discussion_on)
+        if discussion_on:
+            if discussion.isLastMessage():
+                discussion_on = False
+                return
+            else:
+                discussion.next_message(rightOrLeft(message.content))
+                answer = await message.channel.send(discussion.show_message())
+                await answer.add_reaction('✅')
+                await answer.add_reaction('❌')
 
     await bot.process_commands(message)
 

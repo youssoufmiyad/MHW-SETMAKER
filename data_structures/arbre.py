@@ -1,20 +1,20 @@
 class Node:
     def __init__(self, message):
         self.message = message
-        self.yes_node = None
-        self.no_node = None
+        self.right_node = None
+        self.left_node = None
 
-    def add_message(self, new_message, yes_or_no, old_message):
+    def add_message(self, new_message, option, old_message):
         if self.message == old_message:
-            if yes_or_no == "oui":
-                self.yes_node = Node(new_message)
+            if option == "right":
+                self.right_node = Node(new_message)
             else:
-                self.no_node = Node(new_message)
+                self.left_node = Node(new_message)
         else:
-            if self.yes_node != None:
-                self.yes_node.add_message(new_message, yes_or_no, old_message)
-            if self.no_node != None:
-                self.no_node.add_message(new_message, yes_or_no, old_message)
+            if self.right_node != None:
+                self.right_node.add_message(new_message, option, old_message)
+            if self.left_node != None:
+                self.left_node.add_message(new_message, option, old_message)
 
 
 class Discusion_tree:
@@ -27,31 +27,37 @@ class Discusion_tree:
         self.current_conversation_node = self.first_node
 
 
-    def add_message(self, new_message, yes_or_no, old_message):
-        self.first_node.add_message(new_message, yes_or_no, old_message)
+    def add_message(self, new_message, option, old_message):
+        self.first_node.add_message(new_message, option, old_message)
 
-    def next_message(self, yes_or_no):
+    def next_message(self, option):
         if self.current_conversation_node == None:
-            if yes_or_no == "oui":
-                self.current_conversation_node = self.first_node.yes_node
-            elif yes_or_no == "non":
-                self.current_conversation_node = self.first_node.no_node
+            if option == "right":
+                self.current_conversation_node = self.first_node.right_node
+            elif option == "left":
+                self.current_conversation_node = self.first_node.left_node
         else:
-            if yes_or_no == "oui":
-                self.current_conversation_node = self.current_conversation_node.yes_node
-            elif yes_or_no == "non":
-                self.current_conversation_node = self.current_conversation_node.no_node
+            if option == "right":
+                self.current_conversation_node = self.current_conversation_node.right_node
+            elif option == "left":
+                self.current_conversation_node = self.current_conversation_node.left_node
 
     def show_message(self):
         if self.current_conversation_node == None:
             return "FIN DE L'ARBRE"
         return self.current_conversation_node.message
+    
+    def isLastMessage(self):
+        if self.current_conversation_node.left_node==None and self.current_conversation_node.right_node==None:
+            return True
+        else:
+            return False
 
 
 # Discusion = Discusion_tree()
 # Discusion.first_node = Node("Help?")
-# Discusion.add_message("Python ?", "oui", "Help?")
-# Discusion.add_message("tant pis", "non", "Help?")
-# Discusion.next_message("oui")
-# Discusion.next_message("non")
+# Discusion.add_message("Python ?", "right", "Help?")
+# Discusion.add_message("tant pis", "left", "Help?")
+# Discusion.next_message("right")
+# Discusion.next_message("left")
 # print(Discusion.show_message())
