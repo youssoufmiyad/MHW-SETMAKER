@@ -26,7 +26,6 @@ class Discusion_tree:
         self.first_node = Node(message)
         self.current_conversation_node = self.first_node
 
-
     def add_message(self, new_message, option, old_message):
         self.first_node.add_message(new_message, option, old_message)
 
@@ -46,12 +45,16 @@ class Discusion_tree:
         if self.current_conversation_node == None:
             return "FIN DE L'ARBRE"
         return self.current_conversation_node.message
-    
+
     def isLastMessage(self):
-        if self.current_conversation_node.left_node==None and self.current_conversation_node.right_node==None:
+        if self.current_conversation_node == None or self.current_conversation_node.left_node == None and self.current_conversation_node.right_node == None:
             return True
         else:
             return False
+        
+    def goRoot(self):
+        self.current_conversation_node = self.first_node
+        return
 
 
 # Discusion = Discusion_tree()

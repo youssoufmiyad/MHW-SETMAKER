@@ -6,7 +6,7 @@ from discord.ext import tasks, commands
 # DATA STRUCTURES (arbre, hashMap, liste)
 from data_structures.liste import chained_list
 from data_structures.arbre import Discusion_tree
-from discussion import discussion
+from discussion import Disscussion
 from datetime import datetime
 from utils import *
 
@@ -29,7 +29,7 @@ path = ""
 
 # Variables de la discussion avec le bot
 discussion_on = False
-discussion = discussion
+disscussion = Disscussion
 
 ################################ HISTORIQUE ##################################
 
@@ -62,9 +62,9 @@ async def history(ctx):
 
 @bot.command(name="help")
 async def help(ctx):
-    global discussion_on, discussion
+    global discussion_on, disscussion
     historique.append("help")
-    answer = await ctx.message.channel.send(discussion.show_message())
+    answer = await ctx.message.channel.send(disscussion.show_message())
     await answer.add_reaction('✅')
     await answer.add_reaction('❌')
     
@@ -75,8 +75,9 @@ async def help(ctx):
 @bot.command(name="exit")
 async def exit(ctx):
     historique.append("exit")
-    global discussion_on
+    global discussion_on, disscussion
     discussion_on = False
+    disscussion.goRoot()
 ##############################################################################
 
 
@@ -104,7 +105,7 @@ async def on_member_join(member):
 
 @bot.event
 async def on_message(message):
-    global path, data, historique, discussion, discussion_on
+    global path, data, historique, Disscussion, discussion_on
 
     discussion_on = discussion_on
     if message.author == bot.user:
@@ -118,13 +119,14 @@ async def on_message(message):
         message.content = message.content.lower()
 
         print("discussion : ", discussion_on)
-        if discussion_on:
-            if discussion.isLastMessage():
+        if discussion_on and message.content!="!exit":
+            if Disscussion.isLastMessage():
                 discussion_on = False
+                disscussion.goRoot()
                 return
             else:
-                discussion.next_message(rightOrLeft(message.content))
-                answer = await message.channel.send(discussion.show_message())
+                Disscussion.next_message(rightOrLeft(message.content))
+                answer = await message.channel.send(Disscussion.show_message())
                 await answer.add_reaction('✅')
                 await answer.add_reaction('❌')
 
