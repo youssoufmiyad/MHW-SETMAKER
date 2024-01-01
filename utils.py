@@ -44,3 +44,20 @@ def rightOrLeft(message):
         return "right"
     elif message == "non" or message in "commandes" or message in "armes" or message in "2":
         return "left"
+
+def rightOrLeftReaction(reaction):
+    print("REACT = ",str(reaction))
+    if str(reaction) == "✅":
+        return "right"
+    elif str(reaction) == "❌":
+        return"left"
+    else:
+        return"not read"
+    
+async def send(ctx,Disscussion,reactions):
+    if Disscussion.isLastMessage() == False:
+        botAnswer = await ctx.channel.send(Disscussion.show_message())
+        for r in reactions:
+            await botAnswer.add_reaction(r)
+        return botAnswer
+        

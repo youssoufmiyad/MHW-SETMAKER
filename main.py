@@ -64,12 +64,11 @@ async def history(ctx):
 async def help(ctx):
     global discussion_on, disscussion
     historique.append("help")
-    answer = await ctx.message.channel.send(disscussion.show_message())
-    await answer.add_reaction('✅')
-    await answer.add_reaction('❌')
-    
-    
+    await send(ctx,Disscussion,['✅','❌'])
     discussion_on = True
+    userAnswer = await bot.wait_for("reaction_add")
+    Disscussion.next_message(rightOrLeftReaction(userAnswer[0]))
+    print(userAnswer[0])
 
 
 @bot.command(name="exit")
@@ -102,11 +101,20 @@ async def on_member_join(member):
     general_channel = bot.get_channel(1167470031345553502)
     await general_channel.send("Bienvenue sur le serveur ! " + member.name)
 
-
+@bot.event
+async def on_reaction_add(reaction,user):
+    global Disscussion
+    if reaction.message.author != user:
+        opt = rightOrLeftReaction(reaction)
+        Disscussion.next_message(opt)
+        print(f"Reaction : {reaction}")
+        print(f"User : {user}")
+        await send(reaction.message,Disscussion,['✅','❌'])
+        
+        
 @bot.event
 async def on_message(message):
     global path, data, historique, Disscussion, discussion_on
-
     discussion_on = discussion_on
     if message.author == bot.user:
         return
@@ -125,12 +133,14 @@ async def on_message(message):
                 disscussion.goRoot()
                 return
             else:
-                Disscussion.next_message(rightOrLeft(message.content))
-                answer = await message.channel.send(Disscussion.show_message())
-                await answer.add_reaction('✅')
-                await answer.add_reaction('❌')
+                
+                await send(message,Disscussion,['✅','❌'])
+
+                
 
     await bot.process_commands(message)
+    
 
 
 bot.run(os.getenv("BOT_ID"))
+
