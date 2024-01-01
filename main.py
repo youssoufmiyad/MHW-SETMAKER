@@ -74,7 +74,7 @@ async def history_last(ctx):
 async def help(ctx):
     global discussion_on, disscussion
     historique.append("help")
-    await send(ctx,Disscussion,['✅','❌'])
+    await send(ctx,disscussion,['✅','❌'])
     discussion_on = True
     userAnswer = await bot.wait_for("reaction_add")
     Disscussion.next_message(rightOrLeftReaction(userAnswer[0]))
@@ -90,8 +90,10 @@ async def exit(ctx):
 @bot.command(name="reset")
 async def reset(ctx):
     historique.append("reset")
-    global disscussion
+    global disscussion,discussion_on
     disscussion.goRoot()
+    if discussion_on:
+        await send(ctx,disscussion,['✅','❌'])
     
 @bot.command(name="speak_about")
 async def speakAbout(ctx,subject=""):
@@ -160,8 +162,7 @@ async def on_message(message):
                 discussion_on = False
                 disscussion.goRoot()
                 return
-            else:
-                
+            elif message.content!="!reset":
                 await send(message,Disscussion,['✅','❌'])
 
                 
