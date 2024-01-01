@@ -40,6 +40,7 @@ disscussion = Disscussion
 async def clear(ctx):
     global historique
     historique = chained_list()
+    historique.append("cls")
     saveExport(data, historique, file=open(path, "r+"))
 
 # Visionnage de l'historique
@@ -79,13 +80,31 @@ async def help(ctx):
     Disscussion.next_message(rightOrLeftReaction(userAnswer[0]))
     print(userAnswer[0])
 
-
 @bot.command(name="exit")
 async def exit(ctx):
     historique.append("exit")
     global discussion_on, disscussion
     discussion_on = False
     disscussion.goRoot()
+    
+@bot.command(name="reset")
+async def reset(ctx):
+    historique.append("reset")
+    global disscussion
+    disscussion.goRoot()
+    
+@bot.command(name="speak_about")
+async def speakAbout(ctx,subject=""):
+    global discussion_on
+    historique.append("speak_about")
+    if subject==None or subject == "":
+        await ctx.channel.send("Renseignez le sujet dont vous voulez savoir si je parle")
+    elif subject in "Monster Hunter World Iceborne" or subject in "Monstres" or subject in "Equipement":
+        await ctx.channel.send("Je peux vous aider à ce sujet, saisissez la commande !help puis demandez moi mes fonctionalités pour en savoir plus")
+    else:
+        await ctx.channel.send(f'Navré, je crains ne pas pouvoir vous aider au sujet de "{subject}"')
+    discussion_on=False
+    
 ##############################################################################
 
 
@@ -127,7 +146,7 @@ async def on_message(message):
     discussion_on = discussion_on
     if message.author == bot.user:
         return
-    else:
+    elif "!speak_about" not in message.content.lower():
         path = "historique/" + str(message.author.id) + ".json"
         data = saveExist(path)
         if (historique.lenght() < 1):
