@@ -38,19 +38,28 @@ disscussion = Disscussion
 
 @bot.command(name="cls")
 async def clear(ctx):
+    global historique
     historique = chained_list()
     saveExport(data, historique, file=open(path, "r+"))
 
 # Visionnage de l'historique
 
 
-@bot.command(name="hist")
+@bot.command(name="historique")
 async def history(ctx):
-    h = ""
+    global historique
+    h = []
     for i in range(historique.lenght()):
-        h += '"'+historique.get(i)+'"\n'
-    print(h)
-    historique.append("hist")
+        h.append(historique.get(i))
+    await ctx.channel.send(h)
+    historique.append("historique")
+    saveExport(data, historique, file=open(path, "r+"))
+    
+@bot.command(name="last_command")
+async def history_last(ctx):
+    global historique
+    await ctx.channel.send(historique.get(historique.lenght()-1))
+    historique.append("last_command")
     saveExport(data, historique, file=open(path, "r+"))
 
 #############################################################################
