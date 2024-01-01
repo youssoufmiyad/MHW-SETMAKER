@@ -6,9 +6,9 @@
     - Voir la dernière commande :white_check_mark:
     - Se déplacer dans l'historique (optionnel) :hourglass_flowing_sand:
     - Vider l'historique :white_check_mark:
-- Arbre de discussion :construction:
-    - reset :construction:
-    - speak about X :hourglass_flowing_sand:
+- Arbre de discussion :white_check_mark:
+    - reset :white_check_mark:
+    - speak about X :white_check_mark:
 - Avancement de la conversation dans hashtable :hourglass_flowing_sand:
 - Stockage des données à l'arret du bot :white_check_mark:
 
