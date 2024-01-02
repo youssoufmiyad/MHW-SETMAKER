@@ -9,7 +9,7 @@
 - Arbre de discussion :white_check_mark:
     - reset :white_check_mark:
     - speak about X :white_check_mark:
-- Avancement de la conversation dans hashtable :hourglass_flowing_sand:
+- Avancement de la conversation dans hashtable :white_check_mark:
 - Stockage des données à l'arret du bot :white_check_mark:
 
 ## Commandes
