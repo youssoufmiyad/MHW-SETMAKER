@@ -80,11 +80,7 @@ def saveConversations(data, conversation, file):
     json.dump(data, file, indent=4)
     file.truncate()
 
-
-# conv = conversationsLoading(saveConversationExist())
-# conv.set("utilisateurs", ["HAHA"])
-# saveConversations(saveConversationExist(), conv, file=open(
-#     "historique/conversations.json", "r+"))
+# Fonctions permettant de décider quel branche emprunté dans l'arbre en fonction de la réponse de l'utilisateur
 
 
 def rightOrLeft(message):
@@ -103,10 +99,20 @@ def rightOrLeftReaction(reaction):
     else:
         return "not read"
 
+# Envoi de la réponse du bot (commande !help)
+
 
 async def send(ctx, disscussion, reactions):
-    if disscussion.isLastMessage()==False:
+    if disscussion.isLastMessage() == False:
         botAnswer = await ctx.channel.send(disscussion.show_message())
         for r in reactions:
             await botAnswer.add_reaction(r)
         return botAnswer
+
+# Chargemenent JSON -> code pour la HashMap
+
+
+def init(dataConv, conversation, utilisateurs, messages):
+    conversation = conversationsLoading(dataConv)
+    utilisateurs = conversation.get("utilisateurs")
+    messages = conversation.get("message")
