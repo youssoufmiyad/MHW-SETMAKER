@@ -33,7 +33,7 @@ conversation = avancement_conversation
 utilisateurs = []
 messages = []
 id = 0
-botAnswer=""
+botAnswer = ""
 
 ################################ HISTORIQUE ##################################
 
@@ -77,16 +77,17 @@ async def history_last(ctx):
 
 @bot.command(name="help")
 async def help(ctx):
-    global discussion_on, disscussion, dataConv, conversation, author_id, utilisateurs, messages,botAnswer
+    global discussion_on, disscussion, dataConv, conversation, author_id, utilisateurs, messages, botAnswer
+
     dataConv = saveConversationExist()
-    conversation = conversationsLoading(dataConv)
-    utilisateurs = conversation.get("utilisateurs")
-    messages = conversation.get("message")
-    historique.append("help")
+    init(dataConv, conversation, utilisateurs, messages)
+
     botAnswer = await send(ctx, disscussion, ['✅', '❌'])
     discussion_on = True
+
     if len(utilisateurs) == 0:
         utilisateurs.append(author_id)
+
     for i in range(len(utilisateurs)):
         if utilisateurs[i] == author_id:
             id = i
@@ -95,38 +96,50 @@ async def help(ctx):
             utilisateurs.append(author_id)
             print("NEW USER")
             id = len(utilisateurs)
-    print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
+
     conversation.set("utilisateurs", utilisateurs)
     conversation.set("message", messages)
     saveConversations(dataConv, conversation, file=open(
         "historique/conversations.json", "r+"))
 
+    historique.append("help")
+    print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
+
+# Sortie de la conversation
+
 
 @bot.command(name="exit")
 async def exit(ctx):
-    historique.append("exit")
     global discussion_on, disscussion
     discussion_on = False
     disscussion.goRoot()
+    historique.append("exit")
+
+
+# Retour à la première question
 
 
 @bot.command(name="reset")
 async def reset(ctx):
-    historique.append("reset")
     global disscussion, discussion_on, messages, id, conversation
+
     disscussion.goRoot()
     messages[id] = []
     conversation.set("message", messages)
     saveConversations(dataConv, conversation, file=open(
         "historique/conversations.json", "r+"))
+
     if discussion_on:
         await send(ctx, disscussion, ['✅', '❌'])
+
+    historique.append("reset")
+
+# Savoir si le bot traite d'un certain sujet (réponse négatives pour tout ce qui ne parle pas de MHW)
 
 
 @bot.command(name="speak_about")
 async def speakAbout(ctx, subject=""):
     global discussion_on
-    historique.append("speak_about")
     if subject == None or subject == "":
         await ctx.channel.send("Renseignez le sujet dont vous voulez savoir si je parle")
     elif subject in "Monster Hunter World Iceborne" or subject in "Monstres" or subject in "Equipement":
@@ -134,8 +147,35 @@ async def speakAbout(ctx, subject=""):
     else:
         await ctx.channel.send(f'Navré, je crains ne pas pouvoir vous aider au sujet de "{subject}"')
     discussion_on = False
+    historique.append("speak_about")
+
+# Réponse en réaction
+
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    global disscussion, dataConv, utilisateurs, messages, id, conversation, botAnswer
+    
+    if reaction.message.author != user and reaction.message.id == botAnswer.id:
+        opt = rightOrLeftReaction(reaction)
+        disscussion.next_message(opt)
+        if len(messages) <= id:
+            messages.append(disscussion.get_path())
+        else:
+            messages[id] = disscussion.get_path()
+        print(f"Reaction : {reaction}")
+        print(f"User : {user}")
+        botAnswer = await send(reaction.message, disscussion, ['✅', '❌'])
+        if disscussion.isLastMessage() == False:
+            conversation.set("utilisateurs", utilisateurs)
+            conversation.set("message", messages)
+            saveConversations(dataConv, conversation, open(
+                "historique/conversations.json", "r+"))
+            print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
 
 ##############################################################################
+
+# Suppression des messages (10 messages)
 
 
 @bot.command(name="clear")
@@ -153,6 +193,8 @@ async def delete(ctx):
 async def on_ready():
     print("Le bot est prêt !")
 
+# Accueil nouveau membre
+
 
 @bot.event
 async def on_member_join(member):
@@ -161,56 +203,44 @@ async def on_member_join(member):
 
 
 @bot.event
-async def on_reaction_add(reaction, user):
-    global disscussion, dataConv, utilisateurs, messages, id, conversation,botAnswer
-    if reaction.message.author != user and reaction.message.id == botAnswer.id:
-        opt = rightOrLeftReaction(reaction)
-        disscussion.next_message(opt)
-        if len(messages) <= id:
-            messages.append(disscussion.get_path())
-        else:
-            messages[id] = disscussion.get_path()
-        print(f"Reaction : {reaction}")
-        print(f"User : {user}")
-        botAnswer=await send(reaction.message, disscussion, ['✅', '❌'])
-        conversation.set("utilisateurs", utilisateurs)
-        conversation.set("message", messages)
-        saveConversations(dataConv, conversation, open(
-            "historique/conversations.json", "r+"))
-
-
-@bot.event
 async def on_message(message):
     global path, data, dataConv, historique, Disscussion, discussion_on, conversation, utilisateurs, messages, id, author_id, botAnswer
     discussion_on = discussion_on
+    message.content = message.content.lower()
+    
     if message.author == bot.user:
         return
-    elif "!speak_about" not in message.content.lower():
+    elif "!speak_about" not in message.content():
+
+        # Historique de commandes
         author_id = str(message.author.id)
         path = "historique/" + author_id + ".json"
         data = saveHistoryExist(path)
         if (historique.lenght() < 1):
             historique = historyLoading(data)
 
+        # ChatBot
         dataConv = saveConversationExist()
-        conversation = conversationsLoading(dataConv)
-        utilisateurs = conversation.get("utilisateurs")
-        messages = conversation.get("message")
-
-        message.content = message.content.lower()
+        init(dataConv, conversation, utilisateurs, messages)
 
         print("discussion : ", discussion_on)
         if discussion_on and message.content != "!exit":
-            print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
+
             if Disscussion.isLastMessage():
+
                 discussion_on = False
                 disscussion.goRoot()
+
                 messages[id] = []
                 conversation.set("message", messages)
+
                 saveConversations(dataConv, conversation, file=open(
                     "historique/conversations.json", "r+"))
+
                 return
+
             elif message.content != "!reset":
+
                 await send(message, Disscussion, ['✅', '❌'])
 
     await bot.process_commands(message)
