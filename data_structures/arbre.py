@@ -21,6 +21,7 @@ class Discusion_tree:
     def __init__(self):
         self.first_node = None
         self.current_conversation_node = None
+        self.path=[]
 
     def add_first_message(self, message):
         self.first_node = Node(message)
@@ -28,23 +29,37 @@ class Discusion_tree:
 
     def add_message(self, new_message, option, old_message):
         self.first_node.add_message(new_message, option, old_message)
-
-    def next_message(self, option):
-        if self.current_conversation_node == None:
-            if option == "right":
-                self.current_conversation_node = self.first_node.right_node
-            elif option == "left":
-                self.current_conversation_node = self.first_node.left_node
-        else:
-            if option == "right":
-                self.current_conversation_node = self.current_conversation_node.right_node
-            elif option == "left":
-                self.current_conversation_node = self.current_conversation_node.left_node
-
+        
     def show_message(self):
         if self.current_conversation_node == None:
             return "FIN DE L'ARBRE"
         return self.current_conversation_node.message
+
+    def next_message(self, option):
+        if self.current_conversation_node == None:
+            if option == "right":
+                print(f"OPTION : {option}")
+                self.current_conversation_node = self.first_node.right_node
+                self.path.append(option)
+            elif option == "left":
+                print(f"OPTION : {option}")
+                self.current_conversation_node = self.first_node.left_node
+                self.path.append(option)
+        else:
+            if option == "right":
+                print(f"OPTION : {option}")
+                self.current_conversation_node = self.current_conversation_node.right_node
+                self.path.append(option)
+            elif option == "left":
+                print(f"OPTION : {option}")
+                self.current_conversation_node = self.current_conversation_node.left_node
+                self.path.append(option)
+        print("MESS:",self.show_message())
+
+    
+    
+    def get_path(self):
+        return self.path
 
     def isLastMessage(self):
         if self.current_conversation_node == None or self.current_conversation_node.left_node == None and self.current_conversation_node.right_node == None:
@@ -54,6 +69,7 @@ class Discusion_tree:
         
     def goRoot(self):
         self.current_conversation_node = self.first_node
+        self.path=[]
         return
 
 
