@@ -5,9 +5,8 @@ from discord.ext import tasks, commands
 
 # DATA STRUCTURES (arbre, hashMap, liste)
 from data_structures.liste import chained_list
-from data_structures.arbre import Discusion_tree
+from data_structures.hashMap import avancement_conversation
 from discussion import Disscussion
-from datetime import datetime
 from utils import *
 
 # API Monster Hunter World
@@ -30,6 +29,11 @@ path = ""
 # Variables de la discussion avec le bot
 discussion_on = False
 disscussion = Disscussion
+conversation = avancement_conversation
+utilisateurs = []
+messages = []
+id = 0
+botAnswer=""
 
 ################################ HISTORIQUE ##################################
 
@@ -41,7 +45,7 @@ async def clear(ctx):
     global historique
     historique = chained_list()
     historique.append("cls")
-    saveExport(data, historique, file=open(path, "r+"))
+    saveHistory(data, historique, file=open(path, "r+"))
 
 # Visionnage de l'historique
 
@@ -54,16 +58,17 @@ async def history(ctx):
         h.append(historique.get(i))
     await ctx.channel.send(h)
     historique.append("historique")
-    saveExport(data, historique, file=open(path, "r+"))
-    
+    saveHistory(data, historique, file=open(path, "r+"))
+
+# Visionnage de la dernière commande saisie
+
+
 @bot.command(name="last_command")
 async def history_last(ctx):
     global historique
     await ctx.channel.send(historique.get(historique.lenght()-1))
     historique.append("last_command")
-    saveExport(data, historique, file=open(path, "r+"))
-
-#############################################################################
+    saveHistory(data, historique, file=open(path, "r+"))
 
 ################################ DISCUSSION ##################################
 
@@ -72,13 +77,30 @@ async def history_last(ctx):
 
 @bot.command(name="help")
 async def help(ctx):
-    global discussion_on, disscussion
+    global discussion_on, disscussion, dataConv, conversation, author_id, utilisateurs, messages,botAnswer
+    dataConv = saveConversationExist()
+    conversation = conversationsLoading(dataConv)
+    utilisateurs = conversation.get("utilisateurs")
+    messages = conversation.get("message")
     historique.append("help")
-    await send(ctx,disscussion,['✅','❌'])
+    botAnswer = await send(ctx, disscussion, ['✅', '❌'])
     discussion_on = True
-    userAnswer = await bot.wait_for("reaction_add")
-    Disscussion.next_message(rightOrLeftReaction(userAnswer[0]))
-    print(userAnswer[0])
+    if len(utilisateurs) == 0:
+        utilisateurs.append(author_id)
+    for i in range(len(utilisateurs)):
+        if utilisateurs[i] == author_id:
+            id = i
+            print(f"USER {utilisateurs[i]} ALREADY REGISTERED, ID : {id}")
+        elif utilisateurs[i] != author_id and i == len(utilisateurs)-1:
+            utilisateurs.append(author_id)
+            print("NEW USER")
+            id = len(utilisateurs)
+    print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
+    conversation.set("utilisateurs", utilisateurs)
+    conversation.set("message", messages)
+    saveConversations(dataConv, conversation, file=open(
+        "historique/conversations.json", "r+"))
+
 
 @bot.command(name="exit")
 async def exit(ctx):
@@ -86,37 +108,43 @@ async def exit(ctx):
     global discussion_on, disscussion
     discussion_on = False
     disscussion.goRoot()
-    
+
+
 @bot.command(name="reset")
 async def reset(ctx):
     historique.append("reset")
-    global disscussion,discussion_on
+    global disscussion, discussion_on, messages, id, conversation
     disscussion.goRoot()
+    messages[id] = []
+    conversation.set("message", messages)
+    saveConversations(dataConv, conversation, file=open(
+        "historique/conversations.json", "r+"))
     if discussion_on:
-        await send(ctx,disscussion,['✅','❌'])
-    
+        await send(ctx, disscussion, ['✅', '❌'])
+
+
 @bot.command(name="speak_about")
-async def speakAbout(ctx,subject=""):
+async def speakAbout(ctx, subject=""):
     global discussion_on
     historique.append("speak_about")
-    if subject==None or subject == "":
+    if subject == None or subject == "":
         await ctx.channel.send("Renseignez le sujet dont vous voulez savoir si je parle")
     elif subject in "Monster Hunter World Iceborne" or subject in "Monstres" or subject in "Equipement":
         await ctx.channel.send("Je peux vous aider à ce sujet, saisissez la commande !help puis demandez moi mes fonctionalités pour en savoir plus")
     else:
         await ctx.channel.send(f'Navré, je crains ne pas pouvoir vous aider au sujet de "{subject}"')
-    discussion_on=False
-    
+    discussion_on = False
+
 ##############################################################################
 
 
 @bot.command(name="clear")
 async def delete(ctx):
     historique.append("clear")
-    saveExport(data, historique, file=open(path, "r+"))
-    messages = ctx.channel.history(limit=10)
+    saveHistory(data, historique, file=open(path, "r+"))
+    ms = ctx.channel.history(limit=10)
 
-    async for message in messages:
+    async for message in ms:
         await message.delete()
         print("deleted")
 
@@ -131,45 +159,60 @@ async def on_member_join(member):
     general_channel = bot.get_channel(1167470031345553502)
     await general_channel.send("Bienvenue sur le serveur ! " + member.name)
 
+
 @bot.event
-async def on_reaction_add(reaction,user):
-    global Disscussion
-    if reaction.message.author != user:
+async def on_reaction_add(reaction, user):
+    global disscussion, dataConv, utilisateurs, messages, id, conversation,botAnswer
+    if reaction.message.author != user and reaction.message.id == botAnswer.id:
         opt = rightOrLeftReaction(reaction)
-        Disscussion.next_message(opt)
+        disscussion.next_message(opt)
+        if len(messages) <= id:
+            messages.append(disscussion.get_path())
+        else:
+            messages[id] = disscussion.get_path()
         print(f"Reaction : {reaction}")
         print(f"User : {user}")
-        await send(reaction.message,Disscussion,['✅','❌'])
-        
-        
+        botAnswer=await send(reaction.message, disscussion, ['✅', '❌'])
+        conversation.set("utilisateurs", utilisateurs)
+        conversation.set("message", messages)
+        saveConversations(dataConv, conversation, open(
+            "historique/conversations.json", "r+"))
+
+
 @bot.event
 async def on_message(message):
-    global path, data, historique, Disscussion, discussion_on
+    global path, data, dataConv, historique, Disscussion, discussion_on, conversation, utilisateurs, messages, id, author_id, botAnswer
     discussion_on = discussion_on
     if message.author == bot.user:
         return
     elif "!speak_about" not in message.content.lower():
-        path = "historique/" + str(message.author.id) + ".json"
-        data = saveExist(path)
+        author_id = str(message.author.id)
+        path = "historique/" + author_id + ".json"
+        data = saveHistoryExist(path)
         if (historique.lenght() < 1):
-            historique = saveImport(data)
+            historique = historyLoading(data)
+
+        dataConv = saveConversationExist()
+        conversation = conversationsLoading(dataConv)
+        utilisateurs = conversation.get("utilisateurs")
+        messages = conversation.get("message")
 
         message.content = message.content.lower()
 
         print("discussion : ", discussion_on)
-        if discussion_on and message.content!="!exit":
+        if discussion_on and message.content != "!exit":
+            print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
             if Disscussion.isLastMessage():
                 discussion_on = False
                 disscussion.goRoot()
+                messages[id] = []
+                conversation.set("message", messages)
+                saveConversations(dataConv, conversation, file=open(
+                    "historique/conversations.json", "r+"))
                 return
-            elif message.content!="!reset":
-                await send(message,Disscussion,['✅','❌'])
-
-                
+            elif message.content != "!reset":
+                await send(message, Disscussion, ['✅', '❌'])
 
     await bot.process_commands(message)
-    
-
 
 bot.run(os.getenv("BOT_ID"))
-
