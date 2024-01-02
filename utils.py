@@ -104,9 +104,9 @@ def rightOrLeftReaction(reaction):
         return "not read"
 
 
-async def send(ctx, Disscussion, reactions):
-    if Disscussion.isLastMessage() == False:
-        botAnswer = await ctx.channel.send(Disscussion.show_message())
+async def send(ctx, disscussion, reactions):
+    if disscussion.isLastMessage()==False:
+        botAnswer = await ctx.channel.send(disscussion.show_message())
         for r in reactions:
             await botAnswer.add_reaction(r)
         return botAnswer

@@ -62,7 +62,7 @@ class Discusion_tree:
         return self.path
 
     def isLastMessage(self):
-        if self.current_conversation_node == None or self.current_conversation_node.left_node == None and self.current_conversation_node.right_node == None:
+        if self.current_conversation_node == None:
             return True
         else:
             return False
