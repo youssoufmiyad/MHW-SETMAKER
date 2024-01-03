@@ -109,10 +109,3 @@ async def send(ctx, disscussion, reactions):
             await botAnswer.add_reaction(r)
         return botAnswer
 
-# Chargemenent JSON -> code pour la HashMap
-
-
-def init(dataConv, conversation, utilisateurs, messages):
-    conversation = conversationsLoading(dataConv)
-    utilisateurs = conversation.get("utilisateurs")
-    messages = conversation.get("message")

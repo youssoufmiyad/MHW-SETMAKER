@@ -80,9 +80,10 @@ async def help(ctx):
     global discussion_on, disscussion, dataConv, conversation, author_id, utilisateurs, messages, botAnswer
 
     dataConv = saveConversationExist()
-    init(dataConv, conversation, utilisateurs, messages)
+    conversation = conversationsLoading(dataConv)
+    utilisateurs = conversation.get("utilisateurs")
+    messages = conversation.get("message")
 
-    botAnswer = await send(ctx, disscussion, ['✅', '❌'])
     discussion_on = True
 
     if len(utilisateurs) == 0:
@@ -102,7 +103,15 @@ async def help(ctx):
     saveConversations(dataConv, conversation, file=open(
         "historique/conversations.json", "r+"))
 
+    print("MESSAGE ID : ", messages)
+    for option in messages[id]:
+        disscussion.next_message(option)
+
+    botAnswer = await send(ctx, disscussion, ['✅', '❌'])
+    
     historique.append("help")
+    saveHistory(data, historique, file=open(path, "r+"))
+
     print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
 
 # Sortie de la conversation
@@ -114,6 +123,8 @@ async def exit(ctx):
     discussion_on = False
     disscussion.goRoot()
     historique.append("exit")
+    saveHistory(data, historique, file=open(path, "r+"))
+
 
 
 # Retour à la première question
@@ -133,6 +144,8 @@ async def reset(ctx):
         await send(ctx, disscussion, ['✅', '❌'])
 
     historique.append("reset")
+    saveHistory(data, historique, file=open(path, "r+"))
+
 
 # Savoir si le bot traite d'un certain sujet (réponse négatives pour tout ce qui ne parle pas de MHW)
 
@@ -148,6 +161,8 @@ async def speakAbout(ctx, subject=""):
         await ctx.channel.send(f'Navré, je crains ne pas pouvoir vous aider au sujet de "{subject}"')
     discussion_on = False
     historique.append("speak_about")
+    saveHistory(data, historique, file=open(path, "r+"))
+
 
 # Réponse en réaction
 
@@ -155,7 +170,7 @@ async def speakAbout(ctx, subject=""):
 @bot.event
 async def on_reaction_add(reaction, user):
     global disscussion, dataConv, utilisateurs, messages, id, conversation, botAnswer
-    
+
     if reaction.message.author != user and reaction.message.id == botAnswer.id:
         opt = rightOrLeftReaction(reaction)
         disscussion.next_message(opt)
@@ -171,7 +186,14 @@ async def on_reaction_add(reaction, user):
             conversation.set("message", messages)
             saveConversations(dataConv, conversation, open(
                 "historique/conversations.json", "r+"))
-            print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
+            
+        else:
+            messages[id] = []
+            conversation.set("utilisateurs", utilisateurs)
+            conversation.set("message", messages)
+            saveConversations(dataConv, conversation, open(
+                "historique/conversations.json", "r+"))
+        print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
 
 ##############################################################################
 
@@ -207,10 +229,10 @@ async def on_message(message):
     global path, data, dataConv, historique, Disscussion, discussion_on, conversation, utilisateurs, messages, id, author_id, botAnswer
     discussion_on = discussion_on
     message.content = message.content.lower()
-    
+
     if message.author == bot.user:
         return
-    elif "!speak_about" not in message.content():
+    elif "!speak_about" not in message.content:
 
         # Historique de commandes
         author_id = str(message.author.id)
@@ -221,7 +243,9 @@ async def on_message(message):
 
         # ChatBot
         dataConv = saveConversationExist()
-        init(dataConv, conversation, utilisateurs, messages)
+        conversation = conversationsLoading(dataConv)
+        utilisateurs = conversation.get("utilisateurs")
+        messages = conversation.get("message")
 
         print("discussion : ", discussion_on)
         if discussion_on and message.content != "!exit":
