@@ -38,6 +38,8 @@ messages = []
 id = 0
 botAnswer = ""
 
+sets = []
+
 ################################ HISTORIQUE ##################################
 
 # Suppression de l'historique
@@ -145,10 +147,9 @@ async def reset(ctx):
         "historique/conversations.json", "r+"))
 
     if discussion_on:
-        botAnswer=await send(ctx, disscussion)
+        botAnswer = await send(ctx, disscussion)
         await botAnswer.add_reaction('✅')
         await botAnswer.add_reaction('❌')
-        
 
     historique.append("reset")
     saveHistory(data, historique, file=open(path, "r+"))
@@ -202,26 +203,37 @@ async def on_reaction_add(reaction, user):
             saveConversations(dataConv, conversation, open(
                 "historique/conversations.json", "r+"))
             discussion_on = False
-        
+
         botAnswer = await send(reaction.message, disscussion)
         for r in react:
             await botAnswer.add_reaction(r)
         disscussion.next_message(opt)
 
-        
         print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
 
 ################################ FONCTION PRINCIPALES ################################
 
 # Lance la création d'un nouveau set
 
+
 @bot.command(name="new_set")
 async def new_set(ctx):
     return
 
+@bot.command(name="get_sets")
+async def get_sets(ctx):
+    global sets
+    for s in sets:
+        embed=discord.Embed()
+        embed.add_field(name="ARMOR", value=s.armor.name, inline=False)
+        embed.add_field(name="WEAPON", value=s.weapon.name, inline=False)
+        await ctx.send(embed=embed)
+    
+
 ################################ BOT ################################
 
 # Suppression des messages (10 messages)
+
 
 @bot.command(name="clear")
 async def delete(ctx):
@@ -249,7 +261,7 @@ async def on_member_join(member):
 
 @bot.event
 async def on_message(message):
-    global path, data, dataConv, historique, Disscussion, discussion_on, conversation, utilisateurs, messages, id, author_id, botAnswer
+    global path, data, dataConv, historique, Disscussion, discussion_on, conversation, utilisateurs, messages, id, author_id, botAnswer, sets
     message.content = message.content.lower()
 
     if message.author == bot.user:
@@ -260,7 +272,7 @@ async def on_message(message):
         author_id = str(message.author.id)
         path = "historique/" + author_id + ".json"
         data = saveHistoryExist(path)
-        setsLoading(data)
+        sets = setsLoading(data)
         if (historique.lenght() < 1):
             historique = historyLoading(data)
 
