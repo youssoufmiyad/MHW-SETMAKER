@@ -61,7 +61,8 @@ async def history(ctx):
     h = []
     for i in range(historique.lenght()):
         h.append(historique.get(i))
-    await ctx.channel.send(h)
+    for j in range(len(h)):
+        await ctx.channel.send(h[len(h)-(1+j)])
     historique.append("historique")
     saveHistory(data, historique, file=open(path, "r+"))
 
@@ -220,15 +221,33 @@ async def on_reaction_add(reaction, user):
 async def new_set(ctx):
     return
 
+# Montre à l'utilisateur tout ses sets
+
+
 @bot.command(name="get_sets")
 async def get_sets(ctx):
     global sets
+    historique.append("get_sets")
+    saveHistory(data, historique, file=open(path, "r+"))
+    nb=1
     for s in sets:
-        embed=discord.Embed()
-        embed.add_field(name="ARMOR", value=s.armor.name, inline=False)
-        embed.add_field(name="WEAPON", value=s.weapon.name, inline=False)
-        await ctx.send(embed=embed)
-    
+        await ctx.send(f"SET {nb}")
+        embedArmor = discord.Embed()
+        embedArmor.add_field(name="ARMOR", value=s.armor.name, inline=False)
+        await ctx.send(embed=embedArmor)
+        
+        for i in range(len(s.armor.pieces)):
+            embedPiece =discord.Embed()
+            embedPiece.add_field(name=s.armor.pieces[i]["type"], value=s.armor.pieces[i]["name"], inline=False)
+            embedPiece.set_image(url=s.armor.pieces[i]["assets"]["imageMale"])
+            await ctx.send(embed=embedPiece)
+        
+        embedWeapon = discord.Embed()
+        embedWeapon.add_field(name="WEAPON", value=s.weapon.name, inline=False)
+        embedWeapon.set_image(url=s.weapon.assets["icon"])
+        await ctx.send(embed=embedWeapon)
+        nb+=1
+
 
 ################################ BOT ################################
 
