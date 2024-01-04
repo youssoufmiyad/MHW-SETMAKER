@@ -7,7 +7,10 @@ from discord.ext import tasks, commands
 from data_structures.liste import chained_list
 from data_structures.hashMap import avancement_conversation
 from discussion import Disscussion
-from utils import *
+from utils.historiqueComand import *
+from utils.historiqueDiscussion import *
+from utils.reponse import *
+from utils.sets import *
 
 # API Monster Hunter World
 from API import *
@@ -107,8 +110,10 @@ async def help(ctx):
     for option in messages[id]:
         disscussion.next_message(option)
 
-    botAnswer = await send(ctx, disscussion, ['✅', '❌'])
-    
+    botAnswer = await send(ctx, disscussion)
+    await botAnswer.add_reaction('✅')
+    await botAnswer.add_reaction('❌')
+
     historique.append("help")
     saveHistory(data, historique, file=open(path, "r+"))
 
@@ -126,22 +131,24 @@ async def exit(ctx):
     saveHistory(data, historique, file=open(path, "r+"))
 
 
-
 # Retour à la première question
 
 
 @bot.command(name="reset")
 async def reset(ctx):
-    global disscussion, discussion_on, messages, id, conversation
+    global disscussion, discussion_on, messages, id, conversation, data, historique
 
     disscussion.goRoot()
-    messages[id] = []
     conversation.set("message", messages)
+    messages[id] = []
     saveConversations(dataConv, conversation, file=open(
         "historique/conversations.json", "r+"))
 
     if discussion_on:
-        await send(ctx, disscussion, ['✅', '❌'])
+        botAnswer=await send(ctx, disscussion)
+        await botAnswer.add_reaction('✅')
+        await botAnswer.add_reaction('❌')
+        
 
     historique.append("reset")
     saveHistory(data, historique, file=open(path, "r+"))
@@ -169,36 +176,52 @@ async def speakAbout(ctx, subject=""):
 
 @bot.event
 async def on_reaction_add(reaction, user):
-    global disscussion, dataConv, utilisateurs, messages, id, conversation, botAnswer
-
+    global disscussion, discussion_on, dataConv, utilisateurs, messages, id, conversation, botAnswer
+    react = []
     if reaction.message.author != user and reaction.message.id == botAnswer.id:
+
         opt = rightOrLeftReaction(reaction)
-        disscussion.next_message(opt)
         if len(messages) <= id:
             messages.append(disscussion.get_path())
         else:
             messages[id] = disscussion.get_path()
         print(f"Reaction : {reaction}")
         print(f"User : {user}")
-        botAnswer = await send(reaction.message, disscussion, ['✅', '❌'])
         if disscussion.isLastMessage() == False:
+            react.append('✅')
+            react.append('❌')
             conversation.set("utilisateurs", utilisateurs)
             conversation.set("message", messages)
             saveConversations(dataConv, conversation, open(
                 "historique/conversations.json", "r+"))
-            
+
         else:
+            disscussion.goRoot()
             messages[id] = []
-            conversation.set("utilisateurs", utilisateurs)
             conversation.set("message", messages)
             saveConversations(dataConv, conversation, open(
                 "historique/conversations.json", "r+"))
+            discussion_on = False
+        
+        botAnswer = await send(reaction.message, disscussion)
+        for r in react:
+            await botAnswer.add_reaction(r)
+        disscussion.next_message(opt)
+
+        
         print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
 
-##############################################################################
+################################ FONCTION PRINCIPALES ################################
+
+# Lance la création d'un nouveau set
+
+@bot.command(name="new_set")
+async def new_set(ctx):
+    return
+
+################################ BOT ################################
 
 # Suppression des messages (10 messages)
-
 
 @bot.command(name="clear")
 async def delete(ctx):
@@ -227,7 +250,6 @@ async def on_member_join(member):
 @bot.event
 async def on_message(message):
     global path, data, dataConv, historique, Disscussion, discussion_on, conversation, utilisateurs, messages, id, author_id, botAnswer
-    discussion_on = discussion_on
     message.content = message.content.lower()
 
     if message.author == bot.user:
@@ -238,6 +260,7 @@ async def on_message(message):
         author_id = str(message.author.id)
         path = "historique/" + author_id + ".json"
         data = saveHistoryExist(path)
+        setsLoading(data)
         if (historique.lenght() < 1):
             historique = historyLoading(data)
 
