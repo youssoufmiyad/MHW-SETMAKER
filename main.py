@@ -11,6 +11,7 @@ from utils.historiqueComand import *
 from utils.historiqueDiscussion import *
 from utils.reponse import *
 from utils.sets import *
+from utils.element import elementEmoji
 
 # API Monster Hunter World
 from API import *
@@ -243,7 +244,7 @@ async def get_sets(ctx):
             await ctx.send(embed=embedPiece)
         
         embedWeapon = discord.Embed()
-        embedWeapon.add_field(name="WEAPON", value=s.weapon.name, inline=False)
+        embedWeapon.add_field(name="WEAPON", value=s.weapon.name+elementEmoji(s.weapon), inline=False)
         embedWeapon.set_image(url=s.weapon.assets["icon"])
         await ctx.send(embed=embedWeapon)
         nb+=1
