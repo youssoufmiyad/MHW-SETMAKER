@@ -21,6 +21,10 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+# Fetch API
+ARMORS = getArmors()
+WEAPONS = getWeapons()
+
 # API Discord
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
@@ -219,8 +223,33 @@ async def on_reaction_add(reaction, user):
 
 
 @bot.command(name="new_set")
-async def new_set(ctx):
-    return
+async def new_set(ctx,armorName=None,weaponName=None):
+    global sets,data
+    if armorName ==None or weaponName == None:
+        await ctx.channel.send("Saisissez le nom de l'armure et de l'arme")
+        return
+    armorId=0
+    weaponId=0
+    for i in range(len(ARMORS)):
+        if  armorName.lower() in ARMORS[i].name.lower():
+            armorId=ARMORS[i].id
+    for i in range(len(WEAPONS)):
+        if weaponName.lower()in WEAPONS[i].name.lower():
+            weaponId=WEAPONS[i].id
+    if armorId == 0 and weaponId == 0:
+        await ctx.channel.send("Armure et arme introuvable (probablement inexsitante ou mal orthographié)")
+        return
+    elif armorId == 0:
+        await ctx.channel.send("Armure introuvable (probablement inexsitante ou mal orthographié)")
+        return
+    elif weaponId == 0:
+        await ctx.channel.send("Arme introuvable (probablement inexsitante ou mal orthographié)")
+        return
+    else:
+        sets.append(newSet(ARMORS,armorId,WEAPONS,weaponId))
+        saveSets(data,sets,file=open(path, "r+"))
+        await ctx.channel.send("set registered !")
+        return
 
 # Montre à l'utilisateur tout ses sets
 
@@ -240,7 +269,10 @@ async def get_sets(ctx):
         for i in range(len(s.armor.pieces)):
             embedPiece =discord.Embed()
             embedPiece.add_field(name=s.armor.pieces[i]["type"], value=s.armor.pieces[i]["name"], inline=False)
-            embedPiece.set_image(url=s.armor.pieces[i]["assets"]["imageMale"])
+            try:
+                embedPiece.set_image(url=s.armor.pieces[i]["assets"]["imageMale"])
+            except:
+                print('NO ASSETS')
             await ctx.send(embed=embedPiece)
         
         embedWeapon = discord.Embed()
