@@ -294,14 +294,18 @@ async def get_set(ctx, number=None):
         await ctx.send(f"Entrez un numéro de set")
         return
     
-    number = int(number)
-    historique.append(f"!get_set {number}")
+    number = int(number)-1
+    historique.append(f"!get_set {number+1}")
     saveHistory(data, historique, file=open(path, "r+"))
     if number>len(sets)-1:
         await ctx.send("Vous n'avez pas tant de sets")
         return
+    elif number < 0:
+        await ctx.send("Le set numéro 0 ne correspond à rien")
+        return
+        
 
-    await ctx.send(f"SET {number}")
+    await ctx.send(f"SET {number+1}")
     embedArmor = discord.Embed()
     embedArmor.add_field(
         name="ARMOR", value=sets[number].armor.name, inline=False)
