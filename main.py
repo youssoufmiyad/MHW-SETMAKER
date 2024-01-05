@@ -223,19 +223,19 @@ async def on_reaction_add(reaction, user):
 
 
 @bot.command(name="new_set")
-async def new_set(ctx,armorName=None,weaponName=None):
-    global sets,data
-    if armorName ==None or weaponName == None:
+async def new_set(ctx, armorName=None, weaponName=None):
+    global sets, data
+    if armorName == None or weaponName == None:
         await ctx.channel.send("Saisissez le nom de l'armure et de l'arme")
         return
-    armorId=0
-    weaponId=0
+    armorId = 0
+    weaponId = 0
     for i in range(len(ARMORS)):
-        if  armorName.lower() in ARMORS[i].name.lower():
-            armorId=ARMORS[i].id
+        if armorName.lower() in ARMORS[i].name.lower():
+            armorId = ARMORS[i].id
     for i in range(len(WEAPONS)):
-        if weaponName.lower()in WEAPONS[i].name.lower():
-            weaponId=WEAPONS[i].id
+        if weaponName.lower() in WEAPONS[i].name.lower():
+            weaponId = WEAPONS[i].id
     if armorId == 0 and weaponId == 0:
         await ctx.channel.send("Armure et arme introuvable (probablement inexsitante ou mal orthographié)")
         return
@@ -246,8 +246,8 @@ async def new_set(ctx,armorName=None,weaponName=None):
         await ctx.channel.send("Arme introuvable (probablement inexsitante ou mal orthographié)")
         return
     else:
-        sets.append(newSet(ARMORS,armorId,WEAPONS,weaponId))
-        saveSets(data,sets,file=open(path, "r+"))
+        sets.append(newSet(ARMORS, armorId, WEAPONS, weaponId))
+        saveSets(data, sets, file=open(path, "r+"))
         await ctx.channel.send("set registered !")
         return
 
@@ -259,28 +259,70 @@ async def get_sets(ctx):
     global sets
     historique.append("!get_sets")
     saveHistory(data, historique, file=open(path, "r+"))
-    nb=1
+    nb = 1
     for s in sets:
         await ctx.send(f"SET {nb}")
         embedArmor = discord.Embed()
         embedArmor.add_field(name="ARMOR", value=s.armor.name, inline=False)
         await ctx.send(embed=embedArmor)
-        
+
         for i in range(len(s.armor.pieces)):
-            embedPiece =discord.Embed()
-            embedPiece.add_field(name=s.armor.pieces[i]["type"], value=s.armor.pieces[i]["name"], inline=False)
+            embedPiece = discord.Embed()
+            embedPiece.add_field(
+                name=s.armor.pieces[i]["type"], value=s.armor.pieces[i]["name"], inline=False)
             try:
-                embedPiece.set_image(url=s.armor.pieces[i]["assets"]["imageMale"])
+                embedPiece.set_image(
+                    url=s.armor.pieces[i]["assets"]["imageMale"])
             except:
                 print('NO ASSETS')
             await ctx.send(embed=embedPiece)
-        
+
         embedWeapon = discord.Embed()
-        embedWeapon.add_field(name="WEAPON", value=s.weapon.name+elementEmoji(s.weapon), inline=False)
+        embedWeapon.add_field(
+            name="WEAPON", value=s.weapon.name+elementEmoji(s.weapon), inline=False)
         embedWeapon.set_image(url=s.weapon.assets["icon"])
         await ctx.send(embed=embedWeapon)
-        nb+=1
+        nb += 1
 
+# Montre à l'utilisateur le SET de son choix
+
+
+@bot.command(name="get_set")
+async def get_set(ctx, number=None):
+    global sets
+    if number == None or number.isnumeric() == False:
+        await ctx.send(f"Entrez un numéro de set")
+        return
+    
+    number = int(number)
+    historique.append(f"!get_set {number}")
+    saveHistory(data, historique, file=open(path, "r+"))
+    if number>len(sets)-1:
+        await ctx.send("Vous n'avez pas tant de sets")
+        return
+
+    await ctx.send(f"SET {number}")
+    embedArmor = discord.Embed()
+    embedArmor.add_field(
+        name="ARMOR", value=sets[number].armor.name, inline=False)
+    await ctx.send(embed=embedArmor)
+
+    for i in range(len(sets[number].armor.pieces)):
+        embedPiece = discord.Embed()
+        embedPiece.add_field(
+            name=sets[number].armor.pieces[i]["type"], value=sets[number].armor.pieces[i]["name"], inline=False)
+        try:
+            embedPiece.set_image(
+                url=sets[number].armor.pieces[i]["assets"]["imageMale"])
+        except:
+            print('NO ASSETS')
+        await ctx.send(embed=embedPiece)
+
+    embedWeapon = discord.Embed()
+    embedWeapon.add_field(name="WEAPON", value=sets[number].weapon.name +
+                          elementEmoji(sets[number].weapon), inline=False)
+    embedWeapon.set_image(url=sets[number].weapon.assets["icon"])
+    await ctx.send(embed=embedWeapon)
 
 ################################ BOT ################################
 
@@ -354,7 +396,6 @@ async def on_message(message):
 
                 await send(message, Disscussion, ['✅', '❌'])
 
-    
     await bot.process_commands(message)
 
 bot.run(os.getenv("BOT_ID"))

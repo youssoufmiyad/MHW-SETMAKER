@@ -26,5 +26,14 @@
 
         Type : str
 
+- get_set(number):
+    Renvoi le set choisi par l'utilisateur.
+
+    Parametres:
+    - number
+        Numéro du set
+
+        type : int
+
 - get_sets():
-    Renvoi tout les sets enregistrés au nom de l'utilisateur
+    Renvoi tout les sets enregistrés au nom de l'utilisateur.
