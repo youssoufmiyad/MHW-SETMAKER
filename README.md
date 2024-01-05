@@ -13,4 +13,18 @@
 - Stockage des données à l'arret du bot :white_check_mark:
 
 ## Commandes
- 
+- new_set(armor_name,weapon_name):
+    Enregistre un nouveau set au nom de l'utilisateurs.
+
+    Parametres:
+    - armor_name
+        Nom du set de l'armure
+
+        Type : str
+    - weapon_name
+        Nom de l'arme
+
+        Type : str
+
+- get_sets():
+    Renvoi tout les sets enregistrés au nom de l'utilisateur
