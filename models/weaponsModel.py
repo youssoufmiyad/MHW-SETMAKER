@@ -1,3 +1,4 @@
+import json
 class Weapons:
     def __init__(self):
         self.all = []
@@ -19,3 +20,7 @@ class Weapon:
 
     def toString(self):
         return "Id : ", self.id, " Name : ", self.name, " Type : ", self.type, " Rarity : ", self.rarity, " Attack : ", self.attack, " Elements : ", self.elements, " Crafting : ", self.crafting, " Assets : ", self.assets, "Damage Type : ", self.damageType, " Attributes : ", self.attributes
+
+    def toJSON(self):
+        return json.loads(json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=False))

@@ -50,7 +50,7 @@ sets = []
 async def clear(ctx):
     global historique
     historique = chained_list()
-    historique.append("cls")
+    historique.append("!cls")
     saveHistory(data, historique, file=open(path, "r+"))
 
 # Visionnage de l'historique
@@ -64,7 +64,7 @@ async def history(ctx):
         h.append(historique.get(i))
     for j in range(len(h)):
         await ctx.channel.send(h[len(h)-(1+j)])
-    historique.append("historique")
+    historique.append("!historique")
     saveHistory(data, historique, file=open(path, "r+"))
 
 # Visionnage de la dernière commande saisie
@@ -74,7 +74,7 @@ async def history(ctx):
 async def history_last(ctx):
     global historique
     await ctx.channel.send(historique.get(historique.lenght()-1))
-    historique.append("last_command")
+    historique.append("!last_command")
     saveHistory(data, historique, file=open(path, "r+"))
 
 ################################ DISCUSSION ##################################
@@ -118,7 +118,7 @@ async def help(ctx):
     await botAnswer.add_reaction('✅')
     await botAnswer.add_reaction('❌')
 
-    historique.append("help")
+    historique.append("!help")
     saveHistory(data, historique, file=open(path, "r+"))
 
     print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
@@ -131,7 +131,7 @@ async def exit(ctx):
     global discussion_on, disscussion
     discussion_on = False
     disscussion.goRoot()
-    historique.append("exit")
+    historique.append("!exit")
     saveHistory(data, historique, file=open(path, "r+"))
 
 
@@ -153,7 +153,7 @@ async def reset(ctx):
         await botAnswer.add_reaction('✅')
         await botAnswer.add_reaction('❌')
 
-    historique.append("reset")
+    historique.append("!reset")
     saveHistory(data, historique, file=open(path, "r+"))
 
 
@@ -170,7 +170,7 @@ async def speakAbout(ctx, subject=""):
     else:
         await ctx.channel.send(f'Navré, je crains ne pas pouvoir vous aider au sujet de "{subject}"')
     discussion_on = False
-    historique.append("speak_about")
+    historique.append("!speak_about")
     saveHistory(data, historique, file=open(path, "r+"))
 
 
@@ -228,7 +228,7 @@ async def new_set(ctx):
 @bot.command(name="get_sets")
 async def get_sets(ctx):
     global sets
-    historique.append("get_sets")
+    historique.append("!get_sets")
     saveHistory(data, historique, file=open(path, "r+"))
     nb=1
     for s in sets:
@@ -257,7 +257,7 @@ async def get_sets(ctx):
 
 @bot.command(name="clear")
 async def delete(ctx):
-    historique.append("clear")
+    historique.append("!clear")
     saveHistory(data, historique, file=open(path, "r+"))
     ms = ctx.channel.history(limit=10)
 
@@ -322,6 +322,7 @@ async def on_message(message):
 
                 await send(message, Disscussion, ['✅', '❌'])
 
+    
     await bot.process_commands(message)
 
 bot.run(os.getenv("BOT_ID"))
