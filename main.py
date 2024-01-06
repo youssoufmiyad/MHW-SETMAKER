@@ -270,6 +270,7 @@ async def get_sets(ctx):
     saveHistory(data, historique, file=open(path, "r+"))
     nb = 1
     for s in sets:
+        nextSet =NextButton()
         await ctx.send(f"SET {nb}")
         embedArmor = discord.Embed()
         embedArmor.add_field(name="ARMOR", value=s.armor.name, inline=False)
@@ -290,8 +291,12 @@ async def get_sets(ctx):
         embedWeapon.add_field(
             name="WEAPON", value=s.weapon.name+elementEmoji(s.weapon), inline=False)
         embedWeapon.set_image(url=s.weapon.assets["icon"])
-        await ctx.send(embed=embedWeapon)
         nb += 1
+        if nb<=len(sets):
+            await ctx.send(embed=embedWeapon,view=nextSet)
+            await nextSet.wait()
+        else:
+            await ctx.send(embed=embedWeapon)
 
 # Montre à l'utilisateur le SET de son choix
 
