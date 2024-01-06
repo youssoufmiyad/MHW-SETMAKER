@@ -26,10 +26,12 @@ for m in monsters:
 class MonsterView(discord.ui.View):
     def __init__(self):
         super().__init__()
+        self.value=None
         
     @discord.ui.select(placeholder="Select a monster",options=option,min_values=1,max_values=1)
     async def callback(self, interaction: discord.Interaction,select: discord.ui.Select):
         select.placeholder=select.values[0]
         select.disabled=True
         select.view.stop()
+        self.value=select.values[0]
         await interaction.response.edit_message(content=f"you choose {select.values[0]}",view=self)

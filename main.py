@@ -262,7 +262,7 @@ async def make_set(ctx):
     monsterView=MonsterView()
     await ctx.send("DAWG",view=monsterView)
     await monsterView.wait()
-    await ctx.send("clicked")
+    await ctx.send(monsterView.value)
 
 # Montre à l'utilisateur tout ses sets
 
