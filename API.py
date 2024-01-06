@@ -1,7 +1,7 @@
 import urllib3
 import json
 from types import SimpleNamespace
-from models import monstersModel,weaponsModel,setModel
+from models import armorModel, monstersModel,weaponsModel
 
 
 def getMonsters():
@@ -19,28 +19,31 @@ def getMonsters():
 
 
 def getLargeMonsters():
-    resp = urllib3.request("GET", "https://mhw-db.com/monsters").json()
-    monsters = getMonsters()
+    resp = urllib3.request("GET", 'https://mhw-db.com/monsters?q={"type":"Large"}').json()
     largeMonsters = monstersModel.Monsters()
-    nb = 0
-    for monster in monsters.all:
-        if monster.type == "large":
-            largeMonsters.all.append(monster)
-    return monsters
-
-
-def getSets():
-    resp = urllib3.request("GET", "https://mhw-db.com/armor/sets",timeout=10).json()
-    s = setModel.Sets()
     nb = 0
     while True:
         try:
-            s.all.append(setModel.Set(**resp[nb]))
+            largeMonsters.all.append(monstersModel.Monster(**resp[nb]))
+            nb+=1
+        except:
+            print("done")
+            break
+    return largeMonsters.all
+
+
+def getArmors():
+    resp = urllib3.request("GET", "https://mhw-db.com/armor/sets",timeout=10).json()
+    s = armorModel.Armors()
+    nb = 0
+    while True:
+        try:
+            s.all.append(armorModel.Armor(**resp[nb]))
             nb += 1
         except:
             print("done")
             break
-    return s
+    return s.all
 
 
 def getWeapons():
@@ -56,9 +59,5 @@ def getWeapons():
             print("done")
             break
 
-    return w
+    return w.all
 
-
-m = getSets()
-for i in m.all:
-    print(i.toString(), "\n")
