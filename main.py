@@ -2,7 +2,7 @@
 from discussion import *
 import discord
 from discord.ext import tasks, commands
-from buttons import NextButton
+from buttons import *
 
 # DATA STRUCTURES (arbre, hashMap, liste)
 from data_structures.liste import chained_list
@@ -25,6 +25,7 @@ load_dotenv()
 # Fetch API
 ARMORS = getArmors()
 WEAPONS = getWeapons()
+MONSTERS = getLargeMonsters()
 
 # API Discord
 intents = discord.Intents.all()
@@ -46,6 +47,7 @@ botAnswer = ""
 
 sets = []
 
+#ANCHOR - historique
 ################################ HISTORIQUE ##################################
 
 # Suppression de l'historique
@@ -82,6 +84,7 @@ async def history_last(ctx):
     historique.append("!last_command")
     saveHistory(data, historique, file=open(path, "r+"))
 
+#ANCHOR - Discussion
 ################################ DISCUSSION ##################################
 
 # Lancement de la conversation
@@ -218,6 +221,8 @@ async def on_reaction_add(reaction, user):
 
         print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
 
+#ANCHOR - fonction principales
+
 ################################ FONCTION PRINCIPALES ################################
 
 # Lance la création d'un nouveau set
@@ -252,14 +257,13 @@ async def new_set(ctx, armorName=None, weaponName=None):
         await ctx.channel.send("set registered !")
         return
 
-@bot.command(name="test")
-async def test(ctx):
-    v =NextButton()
-    await ctx.send("compte au préfet 19",view=v)
-    await v.wait()
-    await ctx.send("pressed !")
+@bot.command(name="make_set")
+async def make_set(ctx):
+    monsterView=MonsterView()
+    await ctx.send("DAWG",view=monsterView)
+    await monsterView.wait()
+    await ctx.send("clicked")
 
-    
 # Montre à l'utilisateur tout ses sets
 
 
@@ -270,7 +274,7 @@ async def get_sets(ctx):
     saveHistory(data, historique, file=open(path, "r+"))
     nb = 1
     for s in sets:
-        nextSet =NextButton()
+        nextSet = NextButton()
         await ctx.send(f"SET {nb}")
         embedArmor = discord.Embed()
         embedArmor.add_field(name="ARMOR", value=s.armor.name, inline=False)
@@ -292,8 +296,8 @@ async def get_sets(ctx):
             name="WEAPON", value=s.weapon.name+elementEmoji(s.weapon), inline=False)
         embedWeapon.set_image(url=s.weapon.assets["icon"])
         nb += 1
-        if nb<=len(sets):
-            await ctx.send(embed=embedWeapon,view=nextSet)
+        if nb <= len(sets):
+            await ctx.send(embed=embedWeapon, view=nextSet)
             await nextSet.wait()
         else:
             await ctx.send(embed=embedWeapon)
@@ -307,17 +311,16 @@ async def get_set(ctx, number=None):
     if number == None or number.isnumeric() == False:
         await ctx.send(f"Entrez un numéro de set")
         return
-    
+
     number = int(number)-1
     historique.append(f"!get_set {number+1}")
     saveHistory(data, historique, file=open(path, "r+"))
-    if number>len(sets)-1:
+    if number > len(sets)-1:
         await ctx.send("Vous n'avez pas tant de sets")
         return
     elif number < 0:
         await ctx.send("Le set numéro 0 ne correspond à rien")
         return
-        
 
     await ctx.send(f"SET {number+1}")
     embedArmor = discord.Embed()
@@ -326,8 +329,8 @@ async def get_set(ctx, number=None):
     await ctx.send(embed=embedArmor)
 
     for i in range(len(sets[number].armor.pieces)):
-        nextPiece =NextButton()
-        
+        nextPiece = NextButton()
+
         embedPiece = discord.Embed()
         embedPiece.add_field(
             name=sets[number].armor.pieces[i]["type"], value=sets[number].armor.pieces[i]["name"], inline=False)
@@ -336,7 +339,7 @@ async def get_set(ctx, number=None):
                 url=sets[number].armor.pieces[i]["assets"]["imageMale"])
         except:
             print('NO ASSETS')
-        await ctx.send(embed=embedPiece,view=nextPiece)
+        await ctx.send(embed=embedPiece, view=nextPiece)
         await nextPiece.wait()
 
     embedWeapon = discord.Embed()
@@ -344,6 +347,8 @@ async def get_set(ctx, number=None):
                           elementEmoji(sets[number].weapon), inline=False)
     embedWeapon.set_image(url=sets[number].weapon.assets["icon"])
     await ctx.send(embed=embedWeapon)
+
+#ANCHOR - Bot
 
 ################################ BOT ################################
 
@@ -364,7 +369,7 @@ async def delete(ctx):
 @bot.event
 async def on_ready():
     print("Le bot est prêt !")
-    
+
 
 # Accueil nouveau membre
 
