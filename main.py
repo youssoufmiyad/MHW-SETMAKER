@@ -2,6 +2,7 @@
 from discussion import *
 import discord
 from discord.ext import tasks, commands
+from buttons import NextButton
 
 # DATA STRUCTURES (arbre, hashMap, liste)
 from data_structures.liste import chained_list
@@ -251,6 +252,14 @@ async def new_set(ctx, armorName=None, weaponName=None):
         await ctx.channel.send("set registered !")
         return
 
+@bot.command(name="test")
+async def test(ctx):
+    v =NextButton()
+    await ctx.send("compte au préfet 19",view=v)
+    await v.wait()
+    await ctx.send("pressed !")
+
+    
 # Montre à l'utilisateur tout ses sets
 
 
@@ -312,6 +321,8 @@ async def get_set(ctx, number=None):
     await ctx.send(embed=embedArmor)
 
     for i in range(len(sets[number].armor.pieces)):
+        nextPiece =NextButton()
+        
         embedPiece = discord.Embed()
         embedPiece.add_field(
             name=sets[number].armor.pieces[i]["type"], value=sets[number].armor.pieces[i]["name"], inline=False)
@@ -320,7 +331,8 @@ async def get_set(ctx, number=None):
                 url=sets[number].armor.pieces[i]["assets"]["imageMale"])
         except:
             print('NO ASSETS')
-        await ctx.send(embed=embedPiece)
+        await ctx.send(embed=embedPiece,view=nextPiece)
+        await nextPiece.wait()
 
     embedWeapon = discord.Embed()
     embedWeapon.add_field(name="WEAPON", value=sets[number].weapon.name +
@@ -347,6 +359,7 @@ async def delete(ctx):
 @bot.event
 async def on_ready():
     print("Le bot est prêt !")
+    
 
 # Accueil nouveau membre
 
