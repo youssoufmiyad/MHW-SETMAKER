@@ -53,8 +53,8 @@ sets = []
 
 # Suppression de l'historique
 
-
-@bot.command(name="cls")
+#ANCHOR - !cls
+@bot.command(name="history_clear")
 async def clear(ctx):
     global historique
     historique = chained_list()
@@ -63,7 +63,7 @@ async def clear(ctx):
 
 # Visionnage de l'historique
 
-
+#ANCHOR - !historique
 @bot.command(name="historique")
 async def history(ctx):
     global historique
@@ -77,7 +77,7 @@ async def history(ctx):
 
 # Visionnage de la dernière commande saisie
 
-
+#ANCHOR - !last_command
 @bot.command(name="last_command")
 async def history_last(ctx):
     global historique
@@ -90,7 +90,7 @@ async def history_last(ctx):
 
 # Lancement de la conversation
 
-
+#ANCHOR - !help
 @bot.command(name="help")
 async def help(ctx):
     global discussion_on, disscussion, dataConv, conversation, author_id, utilisateurs, messages, botAnswer
@@ -134,7 +134,7 @@ async def help(ctx):
 
 # Sortie de la conversation
 
-
+#ANCHOR - !exit
 @bot.command(name="exit")
 async def exit(ctx):
     global discussion_on, disscussion
@@ -146,7 +146,7 @@ async def exit(ctx):
 
 # Retour à la première question
 
-
+#ANCHOR - !reset
 @bot.command(name="reset")
 async def reset(ctx):
     global disscussion, discussion_on, messages, id, conversation, data, historique
@@ -168,7 +168,7 @@ async def reset(ctx):
 
 # Savoir si le bot traite d'un certain sujet (réponse négatives pour tout ce qui ne parle pas de MHW)
 
-
+#ANCHOR - !speak_about
 @bot.command(name="speak_about")
 async def speakAbout(ctx, subject=""):
     global discussion_on
@@ -185,7 +185,7 @@ async def speakAbout(ctx, subject=""):
 
 # Réponse en réaction
 
-
+#ANCHOR - on_reaction_add
 @bot.event
 async def on_reaction_add(reaction, user):
     global disscussion, discussion_on, dataConv, utilisateurs, messages, id, conversation, botAnswer
@@ -220,7 +220,6 @@ async def on_reaction_add(reaction, user):
             await botAnswer.add_reaction(r)
         disscussion.next_message(opt)
 
-        print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
 
 #ANCHOR - fonction principales
 
@@ -228,7 +227,7 @@ async def on_reaction_add(reaction, user):
 
 # Lance la création d'un nouveau set
 
-
+#ANCHOR - !new_set
 @bot.command(name="new_set")
 async def new_set(ctx, armorName=None, weaponName=None):
     global sets, data
@@ -258,6 +257,9 @@ async def new_set(ctx, armorName=None, weaponName=None):
         await ctx.channel.send("set registered !")
         return
 
+# Génère un set à partir du monstre chassé et de l'arme utilisé par l'utilisateur
+
+#ANCHOR - !make_set
 @bot.command(name="make_set")
 async def make_set(ctx):
     monster=None
@@ -318,7 +320,7 @@ async def make_set(ctx):
 
 # Montre à l'utilisateur tout ses sets
 
-
+#ANCHOR - !get_sets
 @bot.command(name="get_sets")
 async def get_sets(ctx):
     global sets
@@ -356,7 +358,7 @@ async def get_sets(ctx):
 
 # Montre à l'utilisateur le SET de son choix
 
-
+#ANCHOR - !get_set
 @bot.command(name="get_set")
 async def get_set(ctx, number=None):
     global sets
@@ -371,7 +373,7 @@ async def get_set(ctx, number=None):
         await ctx.send("Vous n'avez pas tant de sets")
         return
     elif number < 0:
-        await ctx.send("Le set numéro 0 ne correspond à rien")
+        await ctx.send(f"Le set numéro {number+1} ne correspond à rien")
         return
 
     await ctx.send(f"SET {number+1}")
@@ -400,6 +402,26 @@ async def get_set(ctx, number=None):
     embedWeapon.set_image(url=sets[number].weapon.assets["icon"])
     await ctx.send(embed=embedWeapon)
 
+@bot.command(name="delete_set")
+async def delete_set(ctx,number=None):
+    global sets
+    if number == None or number.isnumeric() == False:
+        await ctx.send(f"Entrez le numéro du set à supprimer")
+        return
+    
+    number = int(number)-1
+    historique.append(f"!get_set {number+1}")
+    saveHistory(data, historique, file=open(path, "r+"))
+    if number > len(sets)-1:
+        await ctx.send("Vous n'avez pas tant de sets")
+        return
+    elif number < 0:
+        await ctx.send(f"Le set numéro {number+1} ne correspond à rien")
+        return
+    
+    sets.pop(number)
+    saveSets(data, sets, file=open(path, "r+"))
+    await ctx.channel.send("le set a été supprimé.")
 #ANCHOR - Bot
 
 ################################ BOT ################################
@@ -407,9 +429,9 @@ async def get_set(ctx, number=None):
 # Suppression des messages (10 messages)
 
 
-@bot.command(name="clear")
+@bot.command(name="delete")
 async def delete(ctx):
-    historique.append("!clear")
+    historique.append("!delete")
     saveHistory(data, historique, file=open(path, "r+"))
     ms = ctx.channel.history(limit=10)
 
@@ -425,13 +447,13 @@ async def on_ready():
 
 # Accueil nouveau membre
 
-
+#ANCHOR - on_member_join
 @bot.event
 async def on_member_join(member):
     general_channel = bot.get_channel(1167470031345553502)
     await general_channel.send("Bienvenue sur le serveur ! " + member.name)
 
-
+#ANCHOR - on_message
 @bot.event
 async def on_message(message):
     global path, data, dataConv, historique, Disscussion, discussion_on, conversation, utilisateurs, messages, id, author_id, botAnswer, sets
