@@ -3,6 +3,7 @@ from discussion import *
 import discord
 from discord.ext import tasks, commands
 from buttons import *
+from selects import *
 
 # DATA STRUCTURES (arbre, hashMap, liste)
 from data_structures.liste import chained_list
@@ -259,10 +260,61 @@ async def new_set(ctx, armorName=None, weaponName=None):
 
 @bot.command(name="make_set")
 async def make_set(ctx):
+    monster=None
+    monsterWeakness=None
+    monsterElement=None
+    armor=None
+    weapon=None
+    
     monsterView=MonsterView()
-    await ctx.send("DAWG",view=monsterView)
+    await ctx.send("sélectionnez une cible",view=monsterView)
     await monsterView.wait()
-    await ctx.send(monsterView.value)
+    
+    for m in MONSTERS:
+        if m.name == monsterView.value:
+            monster = m
+            break
+    
+    for weakness in monster.weaknesses:
+        if weakness["stars"]==3:
+            monsterWeakness=weakness["element"]
+            break
+        
+    if monster.elements == []:
+        monsterElement="dragon"
+    else:
+        monsterElement=monster.elements[0]
+        
+    for a in ARMORS:
+        if a.pieces[0]["resistances"][monsterElement] == 3:
+            armor = a
+            break
+        
+    await ctx.send(armor.name+" "+str(armor.id))
+    
+    weaponView=WeaponView()
+    await ctx.send("Sélectionnez une arme",view=weaponView)
+    await weaponView.wait()
+    
+    for w in WEAPONS:
+        if w.type == weaponView.value:
+            if w.elements!=[]:
+                for e in w.elements:
+                    if e["type"] == monsterWeakness:
+                        weapon = w
+                        break
+                    
+            elif w.ammo!=None:
+                for a in w.ammo:
+                    if a["type"] == monsterWeakness or a["type"] == "flaming" and monsterWeakness=="fire":
+                        weapon = w
+                        break
+                        
+            
+    await ctx.send(f'Pour cette chasse, je recommande l\'armure "{armor.name}". En ce qui concerne l\'arme, le meilleur choix serait "{weapon.name}" pour ses dégats élémentaires et votre style de jeu.')
+    sets.append(newSet(ARMORS, armor.id, WEAPONS, weapon.id))
+    saveSets(data, sets, file=open(path, "r+"))
+    await ctx.channel.send("le set a été enregistré.")
 
 # Montre à l'utilisateur tout ses sets
 
