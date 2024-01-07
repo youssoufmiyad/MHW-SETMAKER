@@ -4,6 +4,7 @@ class Hashmap:
         self.buckets = []
         for i in range(size):
             self.buckets.append([])
+            
         
     def set(self,key,value):
         hashed_key = hash(key)
@@ -11,7 +12,7 @@ class Hashmap:
         
         bucket = self.buckets[idx]
         
-        for i in range(len(bucket)):
+        for i in range(len(bucket)-1):
             if bucket[i][0] == key:
                 del bucket[i]
         
@@ -27,15 +28,6 @@ class Hashmap:
                 return v
         
     
-        
-h = Hashmap(5)
-h.set(9,17)
-print(h.get(9))
-
-h.set("test",24)
-print(h.get("test"))
-
-h.set(9,18)
-print(h.get(9))
-
-print(h.buckets)
+avancement_conversation=Hashmap(2)
+avancement_conversation.set("utilisateurs",[])
+avancement_conversation.set("message",[])

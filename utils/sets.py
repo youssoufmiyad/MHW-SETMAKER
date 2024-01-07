@@ -37,8 +37,7 @@ def setsLoading(data):
 # Création de set
 
 
-def newSet(armors, armorID, weapons, weaponID, sets):
-    updateSets = sets
+def newSet(armors, armorID, weapons, weaponID):
     global newWeapon, newArmor
     nb = 0
     for w in weapons:
@@ -51,7 +50,7 @@ def newSet(armors, armorID, weapons, weaponID, sets):
         if a.id == armorID:
             newArmor = a
             break
-    updateSets.append(
+    return(
         Set(
             Armor(newArmor.id, newArmor.name, newArmor.rank,
                   newArmor.pieces, newArmor.bonus),
@@ -59,7 +58,6 @@ def newSet(armors, armorID, weapons, weaponID, sets):
                    newWeapon.elements, newWeapon.crafting, newWeapon.assets, newWeapon.damageType, newWeapon.attributes)
         ))
 
-    return updateSets
 
 # Sauvegarde des sets
 
@@ -73,12 +71,3 @@ def saveSets(data, sets, file):
     file.seek(0)
     json.dump(data, file, indent=4)
     file.truncate()
-
-
-# ar = getArmors()
-# we = getWeapons()
-
-# data = saveHistoryExist("historique/517344697816186880.json")
-# setTest = setsLoading(data)
-# setTest = newSet(ar, 75, we, 75, setTest)
-# saveSets(data, setTest, file=open("historique/517344697816186880.json", "r+"))
