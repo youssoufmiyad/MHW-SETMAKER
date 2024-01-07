@@ -13,7 +13,7 @@ def getMonsters():
             m.all.append(monstersModel.Monster(**resp[nb]))
             nb += 1
         except:
-            print("done")
+            print("fetch monsters : done")
             break
     return m
 
@@ -27,7 +27,7 @@ def getLargeMonsters():
             largeMonsters.all.append(monstersModel.Monster(**resp[nb]))
             nb+=1
         except:
-            print("done")
+            print("fetch large monsters : done")
             break
     return largeMonsters.all
 
@@ -41,14 +41,14 @@ def getArmors():
             s.all.append(armorModel.Armor(**resp[nb]))
             nb += 1
         except:
-            print("done")
+            print("fetch armors : done")
             break
     return s.all
 
 
 def getWeapons():
     resp = urllib3.request(
-        "GET", 'https://mhw-db.com/weapons?p={"id":true,"name":true,"type":true,"rarity":true,"attack":true,"elements":true,"crafting":true,"assets":true,"damageType":true,"attributes":true}', timeout=10).json()
+        "GET", 'https://mhw-db.com/weapons?p={"id":true,"name":true,"type":true,"rarity":true,"attack":true,"elements":true,"crafting":true,"assets":true,"damageType":true,"attributes":true,"ammo":true}', timeout=10).json()
     w = weaponsModel.Weapons()
     nb = 0
     while True:
@@ -56,8 +56,11 @@ def getWeapons():
             w.all.append(weaponsModel.Weapon(**resp[nb]))
             nb += 1
         except:
-            print("done")
+            print("fetch weapons : done")
             break
 
     return w.all
 
+ARMORS = getArmors()
+WEAPONS = getWeapons()
+MONSTERS = getLargeMonsters()
