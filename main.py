@@ -23,11 +23,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# Fetch API
-ARMORS = getArmors()
-WEAPONS = getWeapons()
-MONSTERS = getLargeMonsters()
-
 # API Discord
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
@@ -454,7 +449,7 @@ async def delete_set(ctx, number=None):
         return
 
     number = int(number)-1
-    historique.append(f"!get_set {number+1}")
+    historique.append(f"!delete_set {number+1}")
     saveHistory(data, historique, file=open(path, "r+"))
     if number > len(sets)-1:
         await ctx.send("Vous n'avez pas tant de sets")
@@ -466,6 +461,61 @@ async def delete_set(ctx, number=None):
     sets.pop(number)
     saveSets(data, sets, file=open(path, "r+"))
     await ctx.channel.send("le set a été supprimé.")
+
+
+@bot.command(name="stat_set")
+async def stat_set(ctx, number=None):
+    global sets
+    attack = 0
+    element = None
+    defense = 0
+    resistances = {
+        "fire": 0,
+        "water": 0,
+        "ice": 0,
+        "thunder": 0,
+        "dragon": 0
+    }
+
+    if number == None or number.isnumeric() == False:
+        await ctx.send(f"Entrez le numéro du set dont vous souhaiter voir les statistique")
+        return
+
+    number = int(number)-1
+    historique.append(f"!stat_set {number+1}")
+    saveHistory(data, historique, file=open(path, "r+"))
+    if number > len(sets)-1:
+        await ctx.send("Vous n'avez pas tant de sets")
+        return
+    elif number < 0:
+        await ctx.send(f"Le set numéro {number+1} ne correspond à rien")
+        return
+
+    attack = sets[number].weapon.attack["raw"]
+    if sets[number].weapon.elements:
+        element = sets[number].weapon.elements[0]["type"]
+    defense = sets[number].armor.pieces[0]["defense"]["max"] * \
+        len(sets[number].armor.pieces)
+    resistances = {"fire": sets[number].armor.pieces[0]["resistances"]["fire"] * 5,
+                   "water": sets[number].armor.pieces[0]["resistances"]["water"]*5,
+                   "ice": sets[number].armor.pieces[0]["resistances"]["ice"]*5,
+                   "thunder": sets[number].armor.pieces[0]["resistances"]["thunder"]*5,
+                   "dragon": sets[number].armor.pieces[0]["resistances"]["dragon"]*5}
+    embed=discord.Embed(title="Stats",description=f"Voici les statistique du set numéro {number+1}")
+    embed.add_field(name="Attack",value=attack)
+    if elementEmoji(sets[number].weapon)!="":
+        embed.add_field(name="Element",value=elementEmoji(sets[number].weapon))
+    else:
+        embed.add_field(name="Element",value="neutre")
+    embed.add_field(name="Defense",value=defense)
+    embed.add_field(name="Fire resistance <:Fire:1192522472151584909>",value=resistances["fire"])
+    embed.add_field(name="Water resistance <:water:1192522477008588871>",value=resistances["water"])
+    embed.add_field(name="Ice resistance <:ice:1192522473418264667>",value=resistances["ice"])
+    embed.add_field(name="Thunder resistance <:thunder:1192522474877878423>",value=resistances["thunder"])
+    embed.add_field(name="Dragon resistance <:Dragon:1192522469521756265>",value=resistances["dragon"])
+    
+    await ctx.send(embed=embed)
+    
 # ANCHOR - Bot
 
 ################################ BOT ################################
