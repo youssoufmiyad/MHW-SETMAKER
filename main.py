@@ -8,7 +8,7 @@ from selects import *
 # DATA STRUCTURES (arbre, hashMap, liste)
 from data_structures.liste import chained_list
 from data_structures.hashMap import avancement_conversation
-from discussion import Disscussion
+from discussion import *
 from utils.historiqueComand import *
 from utils.historiqueDiscussion import *
 from utils.reponse import *
@@ -48,12 +48,14 @@ botAnswer = ""
 
 sets = []
 
-#ANCHOR - historique
+# ANCHOR - historique
 ################################ HISTORIQUE ##################################
 
 # Suppression de l'historique
 
-#ANCHOR - !cls
+# ANCHOR - !cls
+
+
 @bot.command(name="history_clear")
 async def clear(ctx):
     global historique
@@ -63,7 +65,9 @@ async def clear(ctx):
 
 # Visionnage de l'historique
 
-#ANCHOR - !historique
+# ANCHOR - !historique
+
+
 @bot.command(name="historique")
 async def history(ctx):
     global historique
@@ -77,7 +81,9 @@ async def history(ctx):
 
 # Visionnage de la dernière commande saisie
 
-#ANCHOR - !last_command
+# ANCHOR - !last_command
+
+
 @bot.command(name="last_command")
 async def history_last(ctx):
     global historique
@@ -85,12 +91,14 @@ async def history_last(ctx):
     historique.append("!last_command")
     saveHistory(data, historique, file=open(path, "r+"))
 
-#ANCHOR - Discussion
+# ANCHOR - Discussion
 ################################ DISCUSSION ##################################
 
 # Lancement de la conversation
 
-#ANCHOR - !help
+# ANCHOR - !help
+
+
 @bot.command(name="help")
 async def help(ctx):
     global discussion_on, disscussion, dataConv, conversation, author_id, utilisateurs, messages, botAnswer
@@ -124,8 +132,18 @@ async def help(ctx):
         disscussion.next_message(option)
 
     botAnswer = await send(ctx, disscussion)
-    await botAnswer.add_reaction('✅')
-    await botAnswer.add_reaction('❌')
+
+    match disscussion.show_message():
+        case Messages.FIRST_MESSAGE:
+            await botAnswer.add_reaction("⌨️")
+            await botAnswer.add_reaction("🇫")
+        case Messages.R | Messages.RL | Messages.RR:
+            print("R")
+            await botAnswer.add_reaction('✅')
+            await botAnswer.add_reaction('❌')
+        case Messages.RRR | Messages.RLR:
+            await botAnswer.add_reaction('🐉')
+            await botAnswer.add_reaction('<:greatsword:1191087208581574726>')
 
     historique.append("!help")
     saveHistory(data, historique, file=open(path, "r+"))
@@ -134,7 +152,9 @@ async def help(ctx):
 
 # Sortie de la conversation
 
-#ANCHOR - !exit
+# ANCHOR - !exit
+
+
 @bot.command(name="exit")
 async def exit(ctx):
     global discussion_on, disscussion
@@ -146,7 +166,7 @@ async def exit(ctx):
 
 # Retour à la première question
 
-#ANCHOR - !reset
+# ANCHOR - !reset
 @bot.command(name="reset")
 async def reset(ctx):
     global disscussion, discussion_on, messages, id, conversation, data, historique
@@ -159,8 +179,16 @@ async def reset(ctx):
 
     if discussion_on:
         botAnswer = await send(ctx, disscussion)
-        await botAnswer.add_reaction('✅')
-        await botAnswer.add_reaction('❌')
+        match disscussion.show_message():
+            case Messages.FIRST_MESSAGE:
+                await botAnswer.add_reaction("⌨️")
+                await botAnswer.add_reaction("🇫")
+            case Messages.R | Messages.RL | Messages.RR:
+                await botAnswer.add_reaction('✅')
+                await botAnswer.add_reaction('❌')
+            case Messages.RRR | Messages.RLR:
+                await botAnswer.add_reaction('🐉')
+                await botAnswer.add_reaction('<:greatsword:1191087208581574726>')
 
     historique.append("!reset")
     saveHistory(data, historique, file=open(path, "r+"))
@@ -168,7 +196,7 @@ async def reset(ctx):
 
 # Savoir si le bot traite d'un certain sujet (réponse négatives pour tout ce qui ne parle pas de MHW)
 
-#ANCHOR - !speak_about
+# ANCHOR - !speak_about
 @bot.command(name="speak_about")
 async def speakAbout(ctx, subject=""):
     global discussion_on
@@ -185,49 +213,59 @@ async def speakAbout(ctx, subject=""):
 
 # Réponse en réaction
 
-#ANCHOR - on_reaction_add
+# ANCHOR - on_reaction_add
 @bot.event
 async def on_reaction_add(reaction, user):
     global disscussion, discussion_on, dataConv, utilisateurs, messages, id, conversation, botAnswer
-    react = []
     if reaction.message.author != user and reaction.message.id == botAnswer.id:
 
         opt = rightOrLeftReaction(reaction)
+        print(f"OPT = {opt}")
         if len(messages) <= id:
             messages.append(disscussion.get_path())
         else:
             messages[id] = disscussion.get_path()
         print(f"Reaction : {reaction}")
         print(f"User : {user}")
+
+        disscussion.next_message(opt)
+
         if disscussion.isLastMessage() == False:
-            react.append('✅')
-            react.append('❌')
+            botAnswer = await send(reaction.message, disscussion)
+            match disscussion.show_message():
+                case Messages.FIRST_MESSAGE:
+                    await botAnswer.add_reaction("⌨️")
+                    await botAnswer.add_reaction("🇫")
+                case Messages.R | Messages.RL | Messages.RR:
+                    await botAnswer.add_reaction('✅')
+                    await botAnswer.add_reaction('❌')
+                case Messages.RRR | Messages.RLR:
+                    await botAnswer.add_reaction('🐉')
+                    await botAnswer.add_reaction('<:greatsword:1191087208581574726>')
             conversation.set("utilisateurs", utilisateurs)
             conversation.set("message", messages)
             saveConversations(dataConv, conversation, open(
                 "historique/conversations.json", "r+"))
 
         else:
+            print(f"MESSAGE : {disscussion.show_message()}")
+            botAnswer = await send(reaction.message, disscussion)
             disscussion.goRoot()
             messages[id] = []
             conversation.set("message", messages)
             saveConversations(dataConv, conversation, open(
                 "historique/conversations.json", "r+"))
+
             discussion_on = False
 
-        botAnswer = await send(reaction.message, disscussion)
-        for r in react:
-            await botAnswer.add_reaction(r)
-        disscussion.next_message(opt)
 
-
-#ANCHOR - fonction principales
+# ANCHOR - fonction principales
 
 ################################ FONCTION PRINCIPALES ################################
 
 # Lance la création d'un nouveau set
 
-#ANCHOR - !new_set
+# ANCHOR - !new_set
 @bot.command(name="new_set")
 async def new_set(ctx, armorName=None, weaponName=None):
     global sets, data
@@ -259,60 +297,61 @@ async def new_set(ctx, armorName=None, weaponName=None):
 
 # Génère un set à partir du monstre chassé et de l'arme utilisé par l'utilisateur
 
-#ANCHOR - !make_set
+# ANCHOR - !make_set
+
+
 @bot.command(name="make_set")
 async def make_set(ctx):
-    monster=None
-    monsterWeakness=None
-    monsterElement=None
-    armor=None
-    weapon=None
-    
-    monsterView=MonsterView()
-    await ctx.send("sélectionnez une cible",view=monsterView)
+    monster = None
+    monsterWeakness = None
+    monsterElement = None
+    armor = None
+    weapon = None
+
+    monsterView = MonsterView()
+    await ctx.send("sélectionnez une cible", view=monsterView)
     await monsterView.wait()
-    
+
     for m in MONSTERS:
         if m.name == monsterView.value:
             monster = m
             break
-    
+
     for weakness in monster.weaknesses:
-        if weakness["stars"]==3:
-            monsterWeakness=weakness["element"]
+        if weakness["stars"] == 3:
+            monsterWeakness = weakness["element"]
             break
-        
+
     if monster.elements == []:
-        monsterElement="dragon"
+        monsterElement = "dragon"
     else:
-        monsterElement=monster.elements[0]
-        
+        monsterElement = monster.elements[0]
+
     for a in ARMORS:
         if a.pieces[0]["resistances"][monsterElement] == 3:
             armor = a
             break
-        
+
     await ctx.send(armor.name+" "+str(armor.id))
-    
-    weaponView=WeaponView()
-    await ctx.send("Sélectionnez une arme",view=weaponView)
+
+    weaponView = WeaponView()
+    await ctx.send("Sélectionnez une arme", view=weaponView)
     await weaponView.wait()
-    
+
     for w in WEAPONS:
         if w.type == weaponView.value:
-            if w.elements!=[]:
+            if w.elements != []:
                 for e in w.elements:
                     if e["type"] == monsterWeakness:
                         weapon = w
                         break
-                    
-            elif w.ammo!=None:
+
+            elif w.ammo != None:
                 for a in w.ammo:
-                    if a["type"] == monsterWeakness or a["type"] == "flaming" and monsterWeakness=="fire":
+                    if a["type"] == monsterWeakness or a["type"] == "flaming" and monsterWeakness == "fire":
                         weapon = w
                         break
-                        
-            
+
     await ctx.send(f'Pour cette chasse, je recommande l\'armure "{armor.name}". En ce qui concerne l\'arme, le meilleur choix serait "{weapon.name}" pour ses dégats élémentaires et votre style de jeu.')
     sets.append(newSet(ARMORS, armor.id, WEAPONS, weapon.id))
     saveSets(data, sets, file=open(path, "r+"))
@@ -320,7 +359,9 @@ async def make_set(ctx):
 
 # Montre à l'utilisateur tout ses sets
 
-#ANCHOR - !get_sets
+# ANCHOR - !get_sets
+
+
 @bot.command(name="get_sets")
 async def get_sets(ctx):
     global sets
@@ -358,7 +399,9 @@ async def get_sets(ctx):
 
 # Montre à l'utilisateur le SET de son choix
 
-#ANCHOR - !get_set
+# ANCHOR - !get_set
+
+
 @bot.command(name="get_set")
 async def get_set(ctx, number=None):
     global sets
@@ -402,13 +445,14 @@ async def get_set(ctx, number=None):
     embedWeapon.set_image(url=sets[number].weapon.assets["icon"])
     await ctx.send(embed=embedWeapon)
 
+
 @bot.command(name="delete_set")
-async def delete_set(ctx,number=None):
+async def delete_set(ctx, number=None):
     global sets
     if number == None or number.isnumeric() == False:
         await ctx.send(f"Entrez le numéro du set à supprimer")
         return
-    
+
     number = int(number)-1
     historique.append(f"!get_set {number+1}")
     saveHistory(data, historique, file=open(path, "r+"))
@@ -418,11 +462,11 @@ async def delete_set(ctx,number=None):
     elif number < 0:
         await ctx.send(f"Le set numéro {number+1} ne correspond à rien")
         return
-    
+
     sets.pop(number)
     saveSets(data, sets, file=open(path, "r+"))
     await ctx.channel.send("le set a été supprimé.")
-#ANCHOR - Bot
+# ANCHOR - Bot
 
 ################################ BOT ################################
 
@@ -447,13 +491,15 @@ async def on_ready():
 
 # Accueil nouveau membre
 
-#ANCHOR - on_member_join
+# ANCHOR - on_member_join
 @bot.event
 async def on_member_join(member):
     general_channel = bot.get_channel(1167470031345553502)
     await general_channel.send("Bienvenue sur le serveur ! " + member.name)
 
-#ANCHOR - on_message
+# ANCHOR - on_message
+
+
 @bot.event
 async def on_message(message):
     global path, data, dataConv, historique, Disscussion, discussion_on, conversation, utilisateurs, messages, id, author_id, botAnswer, sets
@@ -495,7 +541,7 @@ async def on_message(message):
 
             elif message.content != "!reset":
 
-                await send(message, Disscussion, ['✅', '❌'])
+                await send(message, Disscussion)
 
     await bot.process_commands(message)
 
