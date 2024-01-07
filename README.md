@@ -13,7 +13,7 @@
 - Stockage des données à l'arret du bot :white_check_mark:
 
 ## Commandes
-### new_set(armor_name,weapon_name):
+### new_set(armor_name : str, weapon_name : str):
     Enregistre un nouveau set au nom de l'utilisateurs.
 
     Parametres:
@@ -26,7 +26,11 @@
 
         Type : str
 
-### get_set(number):
+### make_set():
+    Enregistre un nouveau set au nom de l'utilisateurs selon ses besoins.
+
+    
+### get_set(number : int):
     Renvoi le set choisi par l'utilisateur.
 
     Parametres:
@@ -37,3 +41,21 @@
 
 ### get_sets():
     Renvoi tout les sets enregistrés au nom de l'utilisateur.
+
+### delete_set(number : int):
+    Supprime un set choisi par l'utilisateur
+
+    Parametres:
+    - number
+        Numéro du set
+
+        type : int
+
+### stat_set(number : int):
+    Montre les statistique du set choisi par l'utilisateur
+
+    Parametres:
+    - number
+        Numéro du set
+
+        type : int
