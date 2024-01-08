@@ -272,7 +272,6 @@ async def make_set(ctx):
             armor = a
             break
 
-    await ctx.send(armor.name+" "+str(armor.id))
 
     weaponView = WeaponView()
     await ctx.send("Sélectionnez une arme", view=weaponView)
