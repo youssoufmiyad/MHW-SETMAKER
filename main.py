@@ -36,8 +36,6 @@ path = ""
 discussion_on = False
 disscussion = Disscussion
 conversation = avancement_conversation
-utilisateurs = []
-messages = []
 id = 0
 botAnswer = ""
 
@@ -68,9 +66,9 @@ async def history(ctx):
     global historique
     h = ""
     for i in range(historique.lenght()):
-        h+=historique.get(i)+"\n"
-    embed= discord.Embed()
-    embed.add_field(name="Commandes",value=h)
+        h += historique.get(i)+"\n"
+    embed = discord.Embed()
+    embed.add_field(name="Commandes", value=h)
     await ctx.channel.send(embed=embed)
     historique.append("!historique")
     saveHistory(data, historique, file=open(path, "r+"))
@@ -83,8 +81,9 @@ async def history(ctx):
 @bot.command(name="last_command")
 async def history_last(ctx):
     global historique
-    embed= discord.Embed()
-    embed.add_field(name="Dernière commande :",value=historique.get(historique.lenght()-1))
+    embed = discord.Embed()
+    embed.add_field(name="Dernière commande :",
+                    value=historique.get(historique.lenght()-1))
     await ctx.channel.send(embed=embed)
     historique.append("!last_command")
     saveHistory(data, historique, file=open(path, "r+"))
@@ -99,14 +98,13 @@ async def history_last(ctx):
 
 @bot.command(name="help")
 async def help(ctx):
-    global discussion_on, disscussion, dataConv, conversation, author_id, id, utilisateurs, messages, botAnswer
-    dataConv = saveConversationExist()
-    print(f"DATA CONV : {dataConv}")
-    conversation = conversationsLoading(dataConv)
+    global discussion_on, disscussion, dataConv, conversation, author_id, id, botAnswer
+
     print(conversation.get("conversations"))
     print(type(conversation.get("conversations")))
     if conversation.get("conversations") == {}:
-        conversation.set("conversations",[{"userId": author_id, "message": []}])
+        conversation.set("conversations", [
+                         {"userId": author_id, "message": []}])
         saveConversations(dataConv, conversation, file=open(
             "historique/conversations.json", "r+"))
     else:
@@ -119,15 +117,13 @@ async def help(ctx):
                 id = len(conversation.get("conversations"))
                 saveConversations(dataConv, conversation, file=open(
                     "historique/conversations.json", "r+"))
-                
+
             elif conversation.get("conversations")[i]["userId"] == author_id:
                 id = i
-                print(f"USER {conversation.get("conversations")[i]["userId"]} ALREADY REGISTERED, ID : {id}")
-                for m in conversation.get("conversations")[i]["message"]:
-                    disscussion.next_message(m)
-                break
-            
-            elif conversation.get("conversations")[i]["userId"] != author_id and i == len(conversation.get("conversations")):
+                print(f"USER {conversation.get("conversations")[
+                      i]["userId"]} ALREADY REGISTERED, ID : {id}")
+
+            elif conversation.get("conversations")[i]["userId"] != author_id and i+1 == len(conversation.get("conversations")):
                 conversation.get("conversations").append(
                     {"userId": author_id, "message": []})
                 print("NEW USER")
@@ -140,13 +136,12 @@ async def help(ctx):
 
     discussion_on = True
 
-    saveConversations(dataConv, conversation, file=open(
-        "historique/conversations.json", "r+"))
+    # saveConversations(dataConv, conversation, file=open(
+    #     "historique/conversations.json", "r+"))
 
-    print("MESSAGES : ", messages)
-    if messages != []:
-        for option in messages[id]:
-            disscussion.next_message(option)
+    # if conversation.get("conversations")[id]:
+    #     for m in conversation.get("conversations")[id]["message"]:
+    #         disscussion.next_message(m)
 
     botAnswer = await send(ctx, disscussion)
 
@@ -164,7 +159,6 @@ async def help(ctx):
     historique.append("!help")
     saveHistory(data, historique, file=open(path, "r+"))
 
-    print(f"UTILISATEURS : {utilisateurs}, MESSAGES: {messages}")
 
 # Sortie de la conversation
 
@@ -185,7 +179,7 @@ async def exit(ctx):
 # ANCHOR - !reset
 @bot.command(name="reset")
 async def reset(ctx):
-    global disscussion, discussion_on, messages, id, conversation, data, historique
+    global disscussion, discussion_on, id, conversation, data, historique
 
     disscussion.goRoot()
     conversation.get("conversations")[id]["message"] = []
@@ -218,11 +212,13 @@ async def speakAbout(ctx, subject=""):
 # ANCHOR - on_reaction_add
 @bot.event
 async def on_reaction_add(reaction, user):
-    global disscussion, discussion_on, dataConv, utilisateurs, messages, id, conversation, botAnswer,author_id
-    if reaction.message.author.id != author_id and reaction.message.id == botAnswer.id:
+    global disscussion, discussion_on, dataConv, id, conversation, botAnswer, author_id
+    if reaction.message.author != user and reaction.message.id == botAnswer.id:
 
         opt = rightOrLeftReaction(reaction)
         print(f"OPT = {opt}")
+        print(f"ID REACT : {id}")
+        print(f"GET GET {conversation.get("conversations")}")
         conversation.get("conversations")[id]["message"] = disscussion.get_path()
         print(f"Reaction : {reaction}")
         print(f"User : {user}")
@@ -554,6 +550,10 @@ async def delete(ctx):
 
 @bot.event
 async def on_ready():
+    global conversation, dataConv
+    dataConv = saveConversationExist()
+    print(f"DATA CONV : {dataConv}")
+    conversation = conversationsLoading(dataConv)
     print("Le bot est prêt !")
 
 
@@ -570,7 +570,7 @@ async def on_member_join(member):
 
 @bot.event
 async def on_message(message):
-    global path, data, dataConv, historique, Disscussion, discussion_on, conversation, utilisateurs, messages, id, author_id, botAnswer, sets
+    global path, data, dataConv, historique, Disscussion, discussion_on, id, author_id, botAnswer, sets
     message.content = message.content.lower()
 
     if message.author == bot.user:
@@ -585,7 +585,6 @@ async def on_message(message):
         sets = setsLoading(data)
         if (historique.lenght() < 1):
             historique = historyLoading(data)
-
 
         print("discussion : ", discussion_on)
         print("AUTHOR ID : "+author_id)
