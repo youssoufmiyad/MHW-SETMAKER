@@ -290,7 +290,9 @@ async def make_set(ctx):
                     if a["type"] == monsterWeakness or a["type"] == "flaming" and monsterWeakness == "fire":
                         weapon = w
                         break
-
+    if weapon == None or armor == None:
+        await ctx.send(f"Je ne peux malheuresement rien te proposer d'optimal pour cette chasse. Il va falloir que tu expérimente.")
+        return
     await ctx.send(f'Pour cette chasse, je recommande l\'armure "{armor.name}". En ce qui concerne l\'arme, le meilleur choix serait "{weapon.name}" pour ses dégats élémentaires et votre style de jeu.')
     sets.append(newSet(ARMORS, armor.id, WEAPONS, weapon.id))
     saveSets(data, sets, file=open(path, "r+"))
@@ -307,6 +309,9 @@ async def get_sets(ctx):
     historique.append("!get_sets")
     saveHistory(data, historique, file=open(path, "r+"))
     nb = 1
+    if sets==[]:
+        await ctx.send("Vous n'avez pas de set")
+        return
     for s in sets:
         nextSet = NextButton()
         await ctx.send(f"SET {nb}")
