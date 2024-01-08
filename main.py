@@ -66,11 +66,14 @@ async def clear(ctx):
 @bot.command(name="historique")
 async def history(ctx):
     global historique
-    h = []
+    h = ""
     for i in range(historique.lenght()):
-        h.append(historique.get(i))
-    for j in range(len(h)):
-        await ctx.channel.send(h[len(h)-(1+j)])
+        h+=historique.get(i)+"\n"
+    embed= discord.Embed()
+    embed.add_field(name="Commandes",value=h)
+    await ctx.channel.send(embed=embed)
+    # for j in range(len(h)):
+    #     await ctx.channel.send(h[len(h)-(1+j)])
     historique.append("!historique")
     saveHistory(data, historique, file=open(path, "r+"))
 
@@ -96,35 +99,54 @@ async def history_last(ctx):
 
 @bot.command(name="help")
 async def help(ctx):
-    global discussion_on, disscussion, dataConv, conversation, author_id, utilisateurs, messages, botAnswer
-
+    global discussion_on, disscussion, dataConv, conversation, author_id, id, utilisateurs, messages, botAnswer
     dataConv = saveConversationExist()
+    print(f"DATA CONV : {dataConv}")
     conversation = conversationsLoading(dataConv)
-    utilisateurs = conversation.get("utilisateurs")
-    messages = conversation.get("message")
+    print(conversation.get("conversations"))
+    print(type(conversation.get("conversations")))
+    if conversation.get("conversations") == {}:
+        conversation.set("conversations",[{"userId": author_id, "message": []}])
+        saveConversations(dataConv, conversation, file=open(
+            "historique/conversations.json", "r+"))
+    else:
+        for i in range(len(conversation.get("conversations"))):
+            print(f"IDX : {i}")
+            if conversation.get("conversations") == []:
+                conversation.get("conversations").append(
+                    {"userId": author_id, "message": []})
+                print("NEW USER")
+                id = len(conversation.get("conversations"))
+                saveConversations(dataConv, conversation, file=open(
+                    "historique/conversations.json", "r+"))
+                
+            elif conversation.get("conversations")[i]["userId"] == author_id:
+                id = i
+                print(f"USER {conversation.get("conversations")[i]["userId"]} ALREADY REGISTERED, ID : {id}")
+                for m in conversation.get("conversations")[i]["message"]:
+                    disscussion.next_message(m)
+                break
+            
+            elif conversation.get("conversations")[i]["userId"] != author_id and i == len(conversation.get("conversations")):
+                conversation.get("conversations").append(
+                    {"userId": author_id, "message": []})
+                print("NEW USER")
+                id = len(conversation.get("conversations"))
+                saveConversations(dataConv, conversation, file=open(
+                    "historique/conversations.json", "r+"))
+
+    print(f"post loop : {conversation.get("conversations")}")
+    print(f"ID mess : {id}")
 
     discussion_on = True
 
-    if len(utilisateurs) == 0:
-        utilisateurs.append(author_id)
-
-    for i in range(len(utilisateurs)):
-        if utilisateurs[i] == author_id:
-            id = i
-            print(f"USER {utilisateurs[i]} ALREADY REGISTERED, ID : {id}")
-        elif utilisateurs[i] != author_id and i == len(utilisateurs)-1:
-            utilisateurs.append(author_id)
-            print("NEW USER")
-            id = len(utilisateurs)
-
-    conversation.set("utilisateurs", utilisateurs)
-    conversation.set("message", messages)
     saveConversations(dataConv, conversation, file=open(
         "historique/conversations.json", "r+"))
 
-    print("MESSAGE ID : ", messages)
-    for option in messages[id]:
-        disscussion.next_message(option)
+    print("MESSAGES : ", messages)
+    if messages != []:
+        for option in messages[id]:
+            disscussion.next_message(option)
 
     botAnswer = await send(ctx, disscussion)
 
@@ -133,7 +155,6 @@ async def help(ctx):
             await botAnswer.add_reaction("⌨️")
             await botAnswer.add_reaction("🇫")
         case Messages.R | Messages.RL | Messages.RR:
-            print("R")
             await botAnswer.add_reaction('✅')
             await botAnswer.add_reaction('❌')
         case Messages.RRR | Messages.RLR:
@@ -167,23 +188,9 @@ async def reset(ctx):
     global disscussion, discussion_on, messages, id, conversation, data, historique
 
     disscussion.goRoot()
-    conversation.set("message", messages)
-    messages[id] = []
+    conversation.get("conversations")[id]["message"] = []
     saveConversations(dataConv, conversation, file=open(
         "historique/conversations.json", "r+"))
-
-    if discussion_on:
-        botAnswer = await send(ctx, disscussion)
-        match disscussion.show_message():
-            case Messages.FIRST_MESSAGE:
-                await botAnswer.add_reaction("⌨️")
-                await botAnswer.add_reaction("🇫")
-            case Messages.R | Messages.RL | Messages.RR:
-                await botAnswer.add_reaction('✅')
-                await botAnswer.add_reaction('❌')
-            case Messages.RRR | Messages.RLR:
-                await botAnswer.add_reaction('🐉')
-                await botAnswer.add_reaction('<:greatsword:1191087208581574726>')
 
     historique.append("!reset")
     saveHistory(data, historique, file=open(path, "r+"))
@@ -211,15 +218,12 @@ async def speakAbout(ctx, subject=""):
 # ANCHOR - on_reaction_add
 @bot.event
 async def on_reaction_add(reaction, user):
-    global disscussion, discussion_on, dataConv, utilisateurs, messages, id, conversation, botAnswer
-    if reaction.message.author != user and reaction.message.id == botAnswer.id:
+    global disscussion, discussion_on, dataConv, utilisateurs, messages, id, conversation, botAnswer,author_id
+    if reaction.message.author.id != author_id and reaction.message.id == botAnswer.id:
 
         opt = rightOrLeftReaction(reaction)
         print(f"OPT = {opt}")
-        if len(messages) <= id:
-            messages.append(disscussion.get_path())
-        else:
-            messages[id] = disscussion.get_path()
+        conversation.get("conversations")[id]["message"] = disscussion.get_path()
         print(f"Reaction : {reaction}")
         print(f"User : {user}")
 
@@ -237,8 +241,8 @@ async def on_reaction_add(reaction, user):
                 case Messages.RRR | Messages.RLR:
                     await botAnswer.add_reaction('🐉')
                     await botAnswer.add_reaction('<:greatsword:1191087208581574726>')
-            conversation.set("utilisateurs", utilisateurs)
-            conversation.set("message", messages)
+            # conversation.get("conversations")[id]["message"].append(opt)
+
             saveConversations(dataConv, conversation, open(
                 "historique/conversations.json", "r+"))
 
@@ -246,8 +250,8 @@ async def on_reaction_add(reaction, user):
             print(f"MESSAGE : {disscussion.show_message()}")
             botAnswer = await send(reaction.message, disscussion)
             disscussion.goRoot()
-            messages[id] = []
-            conversation.set("message", messages)
+            conversation.get("conversations")[id]["message"] = []
+
             saveConversations(dataConv, conversation, open(
                 "historique/conversations.json", "r+"))
 
@@ -261,6 +265,8 @@ async def on_reaction_add(reaction, user):
 # Lance la création d'un nouveau set
 
 # ANCHOR - !new_set
+
+
 @bot.command(name="new_set")
 async def new_set(ctx, armorName=None, weaponName=None):
     global sets, data
@@ -441,6 +447,9 @@ async def get_set(ctx, number=None):
     await ctx.send(embed=embedWeapon)
 
 
+# ANCHOR - !delete_set
+
+
 @bot.command(name="delete_set")
 async def delete_set(ctx, number=None):
     global sets
@@ -461,6 +470,8 @@ async def delete_set(ctx, number=None):
     sets.pop(number)
     saveSets(data, sets, file=open(path, "r+"))
     await ctx.channel.send("le set a été supprimé.")
+
+# ANCHOR - !stat_set
 
 
 @bot.command(name="stat_set")
@@ -501,21 +512,28 @@ async def stat_set(ctx, number=None):
                    "ice": sets[number].armor.pieces[0]["resistances"]["ice"]*5,
                    "thunder": sets[number].armor.pieces[0]["resistances"]["thunder"]*5,
                    "dragon": sets[number].armor.pieces[0]["resistances"]["dragon"]*5}
-    embed=discord.Embed(title="Stats",description=f"Voici les statistique du set numéro {number+1}")
-    embed.add_field(name="Attack",value=attack)
-    if elementEmoji(sets[number].weapon)!="":
-        embed.add_field(name="Element",value=elementEmoji(sets[number].weapon))
+    embed = discord.Embed(
+        title="Stats", description=f"Voici les statistique du set numéro {number+1}")
+    embed.add_field(name="Attack", value=attack)
+    if elementEmoji(sets[number].weapon) != "":
+        embed.add_field(
+            name="Element", value=elementEmoji(sets[number].weapon))
     else:
-        embed.add_field(name="Element",value="neutre")
-    embed.add_field(name="Defense",value=defense)
-    embed.add_field(name="Fire resistance <:Fire:1192522472151584909>",value=resistances["fire"])
-    embed.add_field(name="Water resistance <:water:1192522477008588871>",value=resistances["water"])
-    embed.add_field(name="Ice resistance <:ice:1192522473418264667>",value=resistances["ice"])
-    embed.add_field(name="Thunder resistance <:thunder:1192522474877878423>",value=resistances["thunder"])
-    embed.add_field(name="Dragon resistance <:Dragon:1192522469521756265>",value=resistances["dragon"])
-    
+        embed.add_field(name="Element", value="neutre")
+    embed.add_field(name="Defense", value=defense)
+    embed.add_field(
+        name="Fire resistance <:Fire:1192522472151584909>", value=resistances["fire"])
+    embed.add_field(
+        name="Water resistance <:water:1192522477008588871>", value=resistances["water"])
+    embed.add_field(
+        name="Ice resistance <:ice:1192522473418264667>", value=resistances["ice"])
+    embed.add_field(name="Thunder resistance <:thunder:1192522474877878423>",
+                    value=resistances["thunder"])
+    embed.add_field(
+        name="Dragon resistance <:Dragon:1192522469521756265>", value=resistances["dragon"])
+
     await ctx.send(embed=embed)
-    
+
 # ANCHOR - Bot
 
 ################################ BOT ################################
@@ -563,35 +581,14 @@ async def on_message(message):
         author_id = str(message.author.id)
         path = "historique/" + author_id + ".json"
         data = saveHistoryExist(path)
+        print(data)
         sets = setsLoading(data)
         if (historique.lenght() < 1):
             historique = historyLoading(data)
 
-        # ChatBot
-        dataConv = saveConversationExist()
-        conversation = conversationsLoading(dataConv)
-        utilisateurs = conversation.get("utilisateurs")
-        messages = conversation.get("message")
 
         print("discussion : ", discussion_on)
-        if discussion_on and message.content != "!exit":
-
-            if Disscussion.isLastMessage():
-
-                discussion_on = False
-                disscussion.goRoot()
-
-                messages[id] = []
-                conversation.set("message", messages)
-
-                saveConversations(dataConv, conversation, file=open(
-                    "historique/conversations.json", "r+"))
-
-                return
-
-            elif message.content != "!reset":
-
-                await send(message, Disscussion)
+        print("AUTHOR ID : "+author_id)
 
     await bot.process_commands(message)
 
