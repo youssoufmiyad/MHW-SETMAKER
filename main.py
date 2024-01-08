@@ -100,49 +100,6 @@ async def history_last(ctx):
 async def help(ctx):
     global discussion_on, disscussion, dataConv, conversation, author_id, id, botAnswer
 
-    print(conversation.get("conversations"))
-    print(type(conversation.get("conversations")))
-    if conversation.get("conversations") == {}:
-        conversation.set("conversations", [
-                         {"userId": author_id, "message": []}])
-        saveConversations(dataConv, conversation, file=open(
-            "historique/conversations.json", "r+"))
-    else:
-        for i in range(len(conversation.get("conversations"))):
-            print(f"IDX : {i}")
-            if conversation.get("conversations") == []:
-                conversation.get("conversations").append(
-                    {"userId": author_id, "message": []})
-                print("NEW USER")
-                id = len(conversation.get("conversations"))
-                saveConversations(dataConv, conversation, file=open(
-                    "historique/conversations.json", "r+"))
-
-            elif conversation.get("conversations")[i]["userId"] == author_id:
-                id = i
-                print(f"USER {conversation.get("conversations")[
-                      i]["userId"]} ALREADY REGISTERED, ID : {id}")
-
-            elif conversation.get("conversations")[i]["userId"] != author_id and i+1 == len(conversation.get("conversations")):
-                conversation.get("conversations").append(
-                    {"userId": author_id, "message": []})
-                print("NEW USER")
-                id = len(conversation.get("conversations"))
-                saveConversations(dataConv, conversation, file=open(
-                    "historique/conversations.json", "r+"))
-
-    print(f"post loop : {conversation.get("conversations")}")
-    print(f"ID mess : {id}")
-
-    discussion_on = True
-
-    # saveConversations(dataConv, conversation, file=open(
-    #     "historique/conversations.json", "r+"))
-
-    # if conversation.get("conversations")[id]:
-    #     for m in conversation.get("conversations")[id]["message"]:
-    #         disscussion.next_message(m)
-
     botAnswer = await send(ctx, disscussion)
 
     match disscussion.show_message():
@@ -182,10 +139,6 @@ async def reset(ctx):
     global disscussion, discussion_on, id, conversation, data, historique
 
     disscussion.goRoot()
-    conversation.get("conversations")[id]["message"] = []
-    saveConversations(dataConv, conversation, file=open(
-        "historique/conversations.json", "r+"))
-
     historique.append("!reset")
     saveHistory(data, historique, file=open(path, "r+"))
 
@@ -217,11 +170,7 @@ async def on_reaction_add(reaction, user):
 
         opt = rightOrLeftReaction(reaction)
         print(f"OPT = {opt}")
-        print(f"ID REACT : {id}")
-        print(f"GET GET {conversation.get("conversations")}")
-        conversation.get("conversations")[id]["message"] = disscussion.get_path()
-        print(f"Reaction : {reaction}")
-        print(f"User : {user}")
+
 
         disscussion.next_message(opt)
 
@@ -237,19 +186,12 @@ async def on_reaction_add(reaction, user):
                 case Messages.RRR | Messages.RLR:
                     await botAnswer.add_reaction('🐉')
                     await botAnswer.add_reaction('<:greatsword:1191087208581574726>')
-            # conversation.get("conversations")[id]["message"].append(opt)
-
-            saveConversations(dataConv, conversation, open(
-                "historique/conversations.json", "r+"))
 
         else:
             print(f"MESSAGE : {disscussion.show_message()}")
+            
             botAnswer = await send(reaction.message, disscussion)
             disscussion.goRoot()
-            conversation.get("conversations")[id]["message"] = []
-
-            saveConversations(dataConv, conversation, open(
-                "historique/conversations.json", "r+"))
 
             discussion_on = False
 
@@ -550,10 +492,6 @@ async def delete(ctx):
 
 @bot.event
 async def on_ready():
-    global conversation, dataConv
-    dataConv = saveConversationExist()
-    print(f"DATA CONV : {dataConv}")
-    conversation = conversationsLoading(dataConv)
     print("Le bot est prêt !")
 
 
