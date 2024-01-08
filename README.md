@@ -1,4 +1,5 @@
 # MHW-SETMAKER
+> ℹ️ Ce bot discord fait office d'assistant pour le jeu "Monster Hunter World".
 
 ## Commandes
 
