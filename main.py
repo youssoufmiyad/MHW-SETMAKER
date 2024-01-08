@@ -148,10 +148,11 @@ async def reset(ctx):
 # ANCHOR - !speak_about
 @bot.command(name="speak_about")
 async def speakAbout(ctx, subject=""):
-    global discussion_on
+    global discussion_on,data
+    print(f"DATA : {data}")
     if subject == None or subject == "":
         await ctx.channel.send("Renseignez le sujet dont vous voulez savoir si je parle")
-    elif subject in "Monster Hunter World Iceborne" or subject in "Monstres" or subject in "Equipement":
+    elif subject.lower() in "monster hunter world iceborne" or subject in "monstres" or subject in "equipement":
         await ctx.channel.send("Je peux vous aider à ce sujet, saisissez la commande !help puis demandez moi mes fonctionalités pour en savoir plus")
     else:
         await ctx.channel.send(f'Navré, je crains ne pas pouvoir vous aider au sujet de "{subject}"')
@@ -518,19 +519,20 @@ async def on_message(message):
 
     if message.author == bot.user:
         return
-    elif "!speak_about" not in message.content:
-
+    else:
         # Historique de commandes
         author_id = str(message.author.id)
         path = "historique/" + author_id + ".json"
         data = saveHistoryExist(path)
         print(data)
-        sets = setsLoading(data)
-        if (historique.lenght() < 1):
-            historique = historyLoading(data)
+        if "!speak_about" not in message.content:
+            print(data)
+            sets = setsLoading(data)
+            if (historique.lenght() < 1):
+                historique = historyLoading(data)
 
-        print("discussion : ", discussion_on)
-        print("AUTHOR ID : "+author_id)
+    print("discussion : ", discussion_on)
+    print("AUTHOR ID : "+author_id)
 
     await bot.process_commands(message)
 
