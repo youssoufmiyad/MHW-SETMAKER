@@ -10,12 +10,14 @@ from data_structures.hashMap import avancement_conversation
 
 def saveConversationExist():
     if os.path.isfile("historique/conversations.json"):
+        print("file exist")
         file = open("historique/conversations.json", "r+")
         data = json.load(file)
     else:
+        print("file doesnt exist")
         file = open("historique/conversations.json", "w")
-        file.write('{"utilisateurs":[],"message":[]}')
-        data = json.loads('{"utilisateurs":[],"message":[]}')
+        file.write('{"conversations":[]}')
+        data = json.loads('{"conversations":[]}')
     return data
 
 # Chargement de la hashmap
@@ -23,16 +25,14 @@ def saveConversationExist():
 
 def conversationsLoading(data):
     conversation = avancement_conversation
-    conversation.set("utilisateurs", data["utilisateurs"])
-    conversation.set("message", data["message"])
+    conversation.set("conversations", data)
     return conversation
 
 # Sauvegarde des changement
 
 
 def saveConversations(data, conversation, file):
-    data['utilisateurs'] = conversation.get("utilisateurs")
-    data['message'] = conversation.get("message")
+    data['conversations'] = conversation.get("conversations")
 
     file.seek(0)
     json.dump(data, file, indent=4)

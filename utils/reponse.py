@@ -10,17 +10,16 @@ def rightOrLeft(message):
 
 def rightOrLeftReaction(reaction):
     print("REACT = ", str(reaction))
-    if str(reaction) == "✅":
-        return "right"
-    elif str(reaction) == "❌":
-        return "left"
-    else:
-        return "not read"
+    match str(reaction):
+        case "✅" | "🇫" | "🐉":
+            return "right"
+        case "❌" | "⌨️" | "<:greatsword:1191087208581574726>":
+            return "left"
+
 
 # Envoi de la réponse du bot (commande !help)
 
 
 async def send(ctx, disscussion):
-    if disscussion.isLastMessage() == False:
-        botAnswer = await ctx.channel.send(disscussion.show_message())
-        return botAnswer
+    botAnswer = await ctx.channel.send(disscussion.show_message())
+    return botAnswer
