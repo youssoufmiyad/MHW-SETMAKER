@@ -31,9 +31,7 @@ class Discusion_tree:
         self.first_node.add_message(new_message, option, old_message)
         
     def show_message(self):
-        if self.current_conversation_node == None:
-            return "FIN DE L'ARBRE"
-        return self.current_conversation_node.message
+       return self.current_conversation_node.message
 
     def next_message(self, option):
         if self.current_conversation_node == None:

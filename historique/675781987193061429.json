@@ -68,17 +68,7 @@
         "!exit",
         "!help",
         "!help",
-        "!help",
-        "!exit",
-        "!help",
-        "!help",
-        "!help",
-        "!help",
-        "!reset",
-        "!help",
-        "!help",
-        "!reset",
-        "!help"
+        "!exit"
     ],
     "sets": []
 }

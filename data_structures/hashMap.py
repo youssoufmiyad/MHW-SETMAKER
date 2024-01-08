@@ -17,6 +17,7 @@ class Hashmap:
                 del bucket[i]
         
         self.buckets[idx].append((key,value))
+        print(f"KEY : {key} SET : {self.get(key)}")
 
     
     def get(self,key):
@@ -28,6 +29,5 @@ class Hashmap:
                 return v
         
     
-avancement_conversation=Hashmap(2)
-avancement_conversation.set("utilisateurs",[])
-avancement_conversation.set("message",[])
+avancement_conversation=Hashmap(1)
+avancement_conversation.set("conversations",{})
