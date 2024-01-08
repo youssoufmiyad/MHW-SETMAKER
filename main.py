@@ -72,8 +72,6 @@ async def history(ctx):
     embed= discord.Embed()
     embed.add_field(name="Commandes",value=h)
     await ctx.channel.send(embed=embed)
-    # for j in range(len(h)):
-    #     await ctx.channel.send(h[len(h)-(1+j)])
     historique.append("!historique")
     saveHistory(data, historique, file=open(path, "r+"))
 
@@ -85,7 +83,9 @@ async def history(ctx):
 @bot.command(name="last_command")
 async def history_last(ctx):
     global historique
-    await ctx.channel.send(historique.get(historique.lenght()-1))
+    embed= discord.Embed()
+    embed.add_field(name="Dernière commande :",value=historique.get(historique.lenght()-1))
+    await ctx.channel.send(embed=embed)
     historique.append("!last_command")
     saveHistory(data, historique, file=open(path, "r+"))
 
