@@ -333,7 +333,10 @@ async def get_sets(ctx):
         embedWeapon = discord.Embed()
         embedWeapon.add_field(
             name="WEAPON", value=s.weapon.name+elementEmoji(s.weapon), inline=False)
-        embedWeapon.set_image(url=s.weapon.assets["icon"])
+        try:
+            embedWeapon.set_image(url=s.weapon.assets["icon"])
+        except:
+            print("NO ASSETS")
         nb += 1
         if nb <= len(sets):
             await ctx.send(embed=embedWeapon, view=nextSet)
